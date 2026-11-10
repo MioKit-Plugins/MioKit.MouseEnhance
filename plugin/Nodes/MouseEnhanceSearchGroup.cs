@@ -1,18 +1,18 @@
-namespace GrabAndMove.Nodes;
+namespace MouseEnhance.Nodes;
 
-[EavType(GrabAndMoveConst.SearchGroupTypeId)]
-public sealed class GrabAndMoveSearchGroup : MioObject, ISearchableFeature
+[EavType(MouseEnhanceConst.SearchGroupTypeId)]
+public sealed class MouseEnhanceSearchGroup : MioObject, ISearchableFeature
 {
-    public GrabAndMoveSearchGroup(string id) : base(id)
+    public MouseEnhanceSearchGroup(string id) : base(id)
     {
     }
 
-    public override Guid MioType => GrabAndMoveConst.SearchGroupType;
+    public override Guid MioType => MouseEnhanceConst.SearchGroupType;
 
     public override async Task EnsureSubTreeLoadedAsync()
     {
-        await EnsureTreeLoadedAsync<StartGrabAndMoveNode>(GrabAndMoveConst.StartNodeId);
-        await EnsureTreeLoadedAsync<StopGrabAndMoveNode>(GrabAndMoveConst.StopNodeId);
+        await EnsureTreeLoadedAsync<StartMouseEnhanceNode>(MouseEnhanceConst.StartNodeId);
+        await EnsureTreeLoadedAsync<StopMouseEnhanceNode>(MouseEnhanceConst.StopNodeId);
     }
 
     public ValueTask SearchAsync(
@@ -27,7 +27,7 @@ public sealed class GrabAndMoveSearchGroup : MioObject, ISearchableFeature
         foreach (var node in this.GetDescendants<MioObject>())
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (node is not (StartGrabAndMoveNode or StopGrabAndMoveNode))
+            if (node is not (StartMouseEnhanceNode or StopMouseEnhanceNode))
                 continue;
             if (!node.TryMatch(request.SearchText!, out var match, out var title))
                 continue;
@@ -37,7 +37,7 @@ public sealed class GrabAndMoveSearchGroup : MioObject, ISearchableFeature
                 Title = title,
                 Description = node.GetDescription(),
                 MatchResult = match!.Value,
-                Source = "抓取移动"
+                Source = "鼠标增强"
             });
         }
 

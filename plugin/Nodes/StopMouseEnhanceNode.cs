@@ -1,17 +1,17 @@
-using GrabAndMove.Features;
-using GrabAndMove.Services;
+using MouseEnhance.Features;
+using MouseEnhance.Services;
 
-namespace GrabAndMove.Nodes;
+namespace MouseEnhance.Nodes;
 
-[EavType(GrabAndMoveConst.StartNodeTypeId)]
-public sealed class StartGrabAndMoveNode : MioObject,
-    IGrabAndMoveFeature,
+[EavType(MouseEnhanceConst.StopNodeTypeId)]
+public sealed class StopMouseEnhanceNode : MioObject,
+    IMouseEnhanceFeature,
     IAliasNameFeature,
     IHotkeyFeature,
     IResultActionProviderFeature,
     IUseFeature
 {
-    public StartGrabAndMoveNode(string id) : base(id)
+    public StopMouseEnhanceNode(string id) : base(id)
     {
         PreloadPropertySource =
         [
@@ -23,7 +23,7 @@ public sealed class StartGrabAndMoveNode : MioObject,
         ];
     }
 
-    public override Guid MioType => GrabAndMoveConst.StartNodeType;
+    public override Guid MioType => MouseEnhanceConst.StopNodeType;
 
     public ValueTask<IEnumerable<ISearchResultAction>> GetActionAsync(SearchResult searchResult) =>
         ValueTask.FromResult<IEnumerable<ISearchResultAction>>(
@@ -34,9 +34,9 @@ public sealed class StartGrabAndMoveNode : MioObject,
 
     public async Task InvokeAsync(InvokeContext context)
     {
-        GrabAndMoveRegister.Instance.ComponentContext
-            .Resolve<GrabAndMoveService>()
-            .EnableFeature();
+        MouseEnhanceRegister.Instance.ComponentContext
+            .Resolve<MouseEnhanceService>()
+            .DisableWindowDrag();
 
         if (context.Source == InvokeSource.SearchBox)
             await MioIoc.Resolve<ISearchBoxWindow>().HideWindowAsync().ConfigureAwait(false);

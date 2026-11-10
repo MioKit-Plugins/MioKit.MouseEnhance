@@ -1,12 +1,12 @@
 using System.Runtime.InteropServices;
 using System.Text;
-using GrabAndMove.Models;
+using MouseEnhance.Models;
 
-namespace GrabAndMove.Services;
+namespace MouseEnhance.Services;
 
 /// <summary>
 /// Win32 helpers for window hit-testing and move/resize.
-/// Portions adapted from Microsoft PowerToys GrabAndMove (MIT).
+/// Portions adapted from Microsoft PowerToys MouseEnhance (MIT).
 /// Copyright (c) Microsoft Corporation.
 /// </summary>
 internal static class GrabWindowNative

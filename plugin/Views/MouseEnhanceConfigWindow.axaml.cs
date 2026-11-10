@@ -2,18 +2,18 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Ti.Avalonia.Shadcn.Controls;
 
-namespace GrabAndMove.Views;
+namespace MouseEnhance.Views;
 
-public partial class GrabAndMoveConfigWindow : ShadWindow
+public partial class MouseEnhanceConfigWindow : ShadWindow
 {
-    private GrabAndMoveConfigViewModel? _viewModel;
+    private MouseEnhanceConfigViewModel? _viewModel;
 
-    public GrabAndMoveConfigWindow()
+    public MouseEnhanceConfigWindow()
     {
         InitializeComponent();
         if (!Design.IsDesignMode)
         {
-            _viewModel = GrabAndMoveRegister.Instance.ComponentContext.Resolve<GrabAndMoveConfigViewModel>();
+            _viewModel = MouseEnhanceRegister.Instance.ComponentContext.Resolve<MouseEnhanceConfigViewModel>();
             _viewModel.Window = this;
             DataContext = _viewModel;
             _viewModel.LoadFromPlugin();

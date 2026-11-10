@@ -1,12 +1,12 @@
 using System.Runtime.InteropServices;
-using GrabAndMove.Models;
+using MouseEnhance.Models;
 using Serilog;
 
-namespace GrabAndMove.Services;
+namespace MouseEnhance.Services;
 
 /// <summary>
 /// Replays absorbed modifier key / mouse click via SendInput.
-/// Adapted from Microsoft PowerToys GrabAndMove (MIT).
+/// Adapted from Microsoft PowerToys MouseEnhance (MIT).
 /// Copyright (c) Microsoft Corporation.
 /// </summary>
 internal sealed class ModifierKeyInjector
@@ -51,7 +51,7 @@ internal sealed class ModifierKeyInjector
             return true;
 
         _logger.Warning(
-            "GrabAndMove modifier replay sent {Sent}/{Expected} (Win32 {Error})",
+            "MouseEnhance modifier replay sent {Sent}/{Expected} (Win32 {Error})",
             sent, inputs.Length, Marshal.GetLastWin32Error());
         return false;
     }
@@ -114,7 +114,7 @@ internal sealed class ModifierKeyInjector
             return true;
 
         _logger.Warning(
-            "GrabAndMove passthrough replay sent {Sent}/{Expected} (Win32 {Error})",
+            "MouseEnhance passthrough replay sent {Sent}/{Expected} (Win32 {Error})",
             sent, inputs.Length, Marshal.GetLastWin32Error());
         return sent > 0;
     }

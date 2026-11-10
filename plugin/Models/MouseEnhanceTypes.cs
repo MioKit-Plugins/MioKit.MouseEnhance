@@ -1,13 +1,13 @@
 using System.ComponentModel;
 
-namespace GrabAndMove.Models;
+namespace MouseEnhance.Models;
 
 /// <summary>
 /// Types and state for Grab And Move.
-/// Logic adapted from Microsoft PowerToys GrabAndMove (MIT).
+/// Logic adapted from Microsoft PowerToys MouseEnhance (MIT).
 /// Copyright (c) Microsoft Corporation.
 /// </summary>
-public enum GrabAndMoveModifier
+public enum MouseEnhanceModifier
 {
     [Description("Alt")]
     Alt = 0,
@@ -87,9 +87,9 @@ internal readonly record struct WindowRect(int Left, int Top, int Right, int Bot
     public int Height => Bottom - Top;
 }
 
-internal sealed class GrabAndMoveSettings
+internal sealed class WindowDragSettings
 {
-    public GrabAndMoveModifier ModifierKey { get; set; } = GrabAndMoveModifier.Alt;
+    public MouseEnhanceModifier ModifierKey { get; set; } = MouseEnhanceModifier.Alt;
     public bool ShouldAbsorbAlt { get; set; } = true;
     public bool UseRightClickResize { get; set; } = true;
     public bool Enabled { get; set; } = true;
@@ -106,7 +106,7 @@ internal struct CapturedKey
 
 internal sealed class ModifierSession
 {
-    public GrabAndMoveModifier Modifier { get; set; } = GrabAndMoveModifier.Alt;
+    public MouseEnhanceModifier Modifier { get; set; } = MouseEnhanceModifier.Alt;
     public ModifierHoldDisposition Disposition { get; set; } = ModifierHoldDisposition.Undecided;
     public CapturedKey Key { get; set; }
     public bool Pressed { get; set; }
@@ -116,7 +116,7 @@ internal sealed class ModifierSession
 
     public void Reset()
     {
-        Modifier = GrabAndMoveModifier.Alt;
+        Modifier = MouseEnhanceModifier.Alt;
         Disposition = ModifierHoldDisposition.Undecided;
         Key = default;
         Pressed = false;

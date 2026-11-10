@@ -1,6 +1,6 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="GrabAndMove.Preview.App"
+             x:Class="MouseEnhance.Preview.App"
              xmlns:shad="using:Ti.Avalonia.Shadcn"
              RequestedThemeVariant="Default">
   <Application.Styles>

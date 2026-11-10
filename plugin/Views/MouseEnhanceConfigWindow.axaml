@@ -4,7 +4,7 @@
                  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                  xmlns:shad="https://github.com/tiny-isle/Ti.Avalonia.Shadcn"
                  xmlns:mio="https://github.com/tiny-isle/MioKit"
-                 xmlns:views="clr-namespace:GrabAndMove.Views"
+                 xmlns:views="clr-namespace:MouseEnhance.Views"
                  mc:Ignorable="d"
                  d:DesignWidth="600"
                  d:DesignHeight="680"
@@ -14,16 +14,16 @@
                  MinHeight="560"
                  CanPin="True"
                  WindowStartupLocation="CenterScreen"
-                 x:Class="GrabAndMove.Views.GrabAndMoveConfigWindow"
-                 x:DataType="views:GrabAndMoveConfigViewModel"
-                 Title="抓取移动">
+                 x:Class="MouseEnhance.Views.MouseEnhanceConfigWindow"
+                 x:DataType="views:MouseEnhanceConfigViewModel"
+                 Title="鼠标增强">
   <Interaction.Behaviors>
-    <mio:PluginWindowBehavior Type="com.tinyisle.plugin.grab-and-move" />
+    <mio:PluginWindowBehavior Type="com.tinyisle.plugin.mouse-enhance" />
   </Interaction.Behaviors>
 
   <shad:ShadWindow.Hosts>
     <shad:ShadToastHost />
   </shad:ShadWindow.Hosts>
 
-  <views:GrabAndMoveConfigPage />
+  <views:MouseEnhanceConfigPage />
 </shad:ShadWindow>

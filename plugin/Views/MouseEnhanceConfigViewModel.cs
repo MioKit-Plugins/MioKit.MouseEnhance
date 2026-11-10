@@ -1,29 +1,29 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using GrabAndMove.Models;
-using GrabAndMove.Services;
+using MouseEnhance.Models;
+using MouseEnhance.Services;
 using Ti.Avalonia.Shadcn.Controls;
 using Ti.Avalonia.Shadcn.Controls.Toast;
 using Ti.Avalonia.Shadcn.Extensions;
 
-namespace GrabAndMove.Views;
+namespace MouseEnhance.Views;
 
-internal partial class GrabAndMoveConfigViewModel : ObservableObject
+internal partial class MouseEnhanceConfigViewModel : ObservableObject
 {
-    private readonly GrabAndMovePlugin _plugin;
-    private readonly GrabAndMoveService _service;
+    private readonly MouseEnhancePlugin _plugin;
+    private readonly MouseEnhanceService _service;
     private bool _isLoaded;
     private string _appliedExcludedApps = string.Empty;
     private string _appliedModifierExcludedApps = string.Empty;
 
-    public GrabAndMoveConfigViewModel()
+    public MouseEnhanceConfigViewModel()
     {
         _plugin = null!;
         _service = null!;
         _isLoaded = false;
     }
 
-    public GrabAndMoveConfigViewModel(GrabAndMovePlugin plugin, GrabAndMoveService service)
+    public MouseEnhanceConfigViewModel(MouseEnhancePlugin plugin, MouseEnhanceService service)
     {
         ArgumentNullException.ThrowIfNull(plugin);
         ArgumentNullException.ThrowIfNull(service);
@@ -32,16 +32,29 @@ internal partial class GrabAndMoveConfigViewModel : ObservableObject
     }
 
     /// <summary>Preview / design shell without plugin DI.</summary>
-    public static GrabAndMoveConfigViewModel CreateDesignPreview() => new();
+    public static MouseEnhanceConfigViewModel CreateDesignPreview() => new();
 
     public ShadWindow? Window { get; set; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(StatusText))]
-    [NotifyPropertyChangedFor(nameof(IsRunning))]
+    [NotifyPropertyChangedFor(nameof(VolumeCardTitle))]
+    [NotifyPropertyChangedFor(nameof(VolumeCardDescription))]
+    [NotifyPropertyChangedFor(nameof(WindowDragCardTitle))]
+    [NotifyPropertyChangedFor(nameof(WindowDragCardDescription))]
+    [NotifyPropertyChangedFor(nameof(WindowDragSectionOpacity))]
+    private bool _volumeScrollEnabled = true;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(WindowDragSectionOpacity))]
     [NotifyPropertyChangedFor(nameof(GestureCardsOpacity))]
     [NotifyPropertyChangedFor(nameof(ResizeHintOpacity))]
-    private bool _isFeatureEnabled = true;
+    private bool _windowDragEnabled = true;
+
+    [ObservableProperty]
+    private bool _desktopIconsToggleEnabled;
+
+    [ObservableProperty]
+    private bool _taskbarShowDesktopEnabled;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsAltSelected))]
@@ -50,7 +63,11 @@ internal partial class GrabAndMoveConfigViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(ModifierDisplayName))]
     [NotifyPropertyChangedFor(nameof(MoveGestureHint))]
     [NotifyPropertyChangedFor(nameof(ResizeGestureHint))]
-    private GrabAndMoveModifier _activationModifier = GrabAndMoveModifier.Alt;
+    [NotifyPropertyChangedFor(nameof(VolumeCardTitle))]
+    [NotifyPropertyChangedFor(nameof(VolumeCardDescription))]
+    [NotifyPropertyChangedFor(nameof(WindowDragCardTitle))]
+    [NotifyPropertyChangedFor(nameof(WindowDragCardDescription))]
+    private MouseEnhanceModifier _activationModifier = MouseEnhanceModifier.Alt;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ResizeGestureHint))]
@@ -88,19 +105,23 @@ internal partial class GrabAndMoveConfigViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(ModifierPickHintOpacity))]
     private string _modifierPickHint = "拖到窗口后松开";
 
-    public bool IsRunning => IsFeatureEnabled;
-    public string StatusText => IsFeatureEnabled ? "运行中" : "已暂停";
-    public double GestureCardsOpacity => IsFeatureEnabled ? 1 : 0.45;
-    public bool IsAltSelected => ActivationModifier == GrabAndMoveModifier.Alt;
-    public bool IsWinSelected => ActivationModifier == GrabAndMoveModifier.Win;
+    public double WindowDragSectionOpacity => WindowDragEnabled ? 1 : 0.45;
+    public double GestureCardsOpacity => WindowDragEnabled ? 1 : 0.45;
+    public bool IsAltSelected => ActivationModifier == MouseEnhanceModifier.Alt;
+    public bool IsWinSelected => ActivationModifier == MouseEnhanceModifier.Win;
     public double AltMenuSettingOpacity => IsAltSelected ? 1 : 0.45;
-    public string ModifierDisplayName => ActivationModifier == GrabAndMoveModifier.Win ? "Win" : "Alt";
+    public string ModifierDisplayName => ActivationModifier == MouseEnhanceModifier.Win ? "Win" : "Alt";
+    public string VolumeCardTitle => $"{ModifierDisplayName}+滚轮调节音量";
+    public string VolumeCardDescription => $"按住{ModifierDisplayName}键滚动鼠标滚轮调节系统音量。";
+    public string WindowDragCardTitle => $"{ModifierDisplayName}+拖动窗口";
+    public string WindowDragCardDescription =>
+        $"按住{ModifierDisplayName}：左键拖动移动窗口，右键拖动调整大小。";
     public string MoveGestureHint => $"{ModifierDisplayName} + 左键拖动";
     public string ResizeGestureHint => RightClickResizeEnabled
         ? $"{ModifierDisplayName} + 右键拖动"
         : "已关闭";
     public double ResizeHintOpacity =>
-        !RightClickResizeEnabled || !IsFeatureEnabled ? 0.45 : 1;
+        !RightClickResizeEnabled || !WindowDragEnabled ? 0.45 : 1;
 
     public bool HasUnappliedExcludeChanges =>
         !string.Equals(NormalizeLines(ExcludedAppsDraft), NormalizeLines(_appliedExcludedApps), StringComparison.Ordinal) ||
@@ -117,8 +138,11 @@ internal partial class GrabAndMoveConfigViewModel : ObservableObject
     {
         _isLoaded = false;
 
-        IsFeatureEnabled = _service.IsFeatureEnabled;
-        ActivationModifier = _plugin.GetActivationModifier() ?? GrabAndMoveModifier.Alt;
+        WindowDragEnabled = _service.IsWindowDragEnabled;
+        VolumeScrollEnabled = _plugin.GetVolumeScrollEnabled() != false;
+        DesktopIconsToggleEnabled = _plugin.GetDesktopIconsToggleEnabled() == true;
+        TaskbarShowDesktopEnabled = _plugin.GetTaskbarShowDesktopEnabled() == true;
+        ActivationModifier = _plugin.GetActivationModifier() ?? MouseEnhanceModifier.Alt;
         RightClickResizeEnabled = _plugin.GetRightClickResizeEnabled() != false;
         PreventAltWindowMenu = _plugin.GetPreventAltWindowMenu() != false;
 
@@ -157,18 +181,45 @@ internal partial class GrabAndMoveConfigViewModel : ObservableObject
             : $"松开以添加 {processFileName}";
     }
 
-    partial void OnIsFeatureEnabledChanged(bool value)
+    partial void OnWindowDragEnabledChanged(bool value)
     {
         if (!_isLoaded)
             return;
 
         if (value)
-            _service.EnableFeature();
+            _service.EnableWindowDrag();
         else
-            _service.DisableFeature();
+            _service.DisableWindowDrag();
     }
 
-    partial void OnActivationModifierChanged(GrabAndMoveModifier value)
+    partial void OnVolumeScrollEnabledChanged(bool value)
+    {
+        if (!_isLoaded)
+            return;
+
+        _plugin.SetVolumeScrollEnabled(value);
+        _service.ReloadSettingsFromPlugin();
+    }
+
+    partial void OnDesktopIconsToggleEnabledChanged(bool value)
+    {
+        if (!_isLoaded)
+            return;
+
+        _plugin.SetDesktopIconsToggleEnabled(value);
+        _service.ReloadSettingsFromPlugin();
+    }
+
+    partial void OnTaskbarShowDesktopEnabledChanged(bool value)
+    {
+        if (!_isLoaded)
+            return;
+
+        _plugin.SetTaskbarShowDesktopEnabled(value);
+        _service.ReloadSettingsFromPlugin();
+    }
+
+    partial void OnActivationModifierChanged(MouseEnhanceModifier value)
     {
         if (!_isLoaded)
             return;
@@ -198,13 +249,13 @@ internal partial class GrabAndMoveConfigViewModel : ObservableObject
     [RelayCommand]
     private void SelectAltModifier()
     {
-        ActivationModifier = GrabAndMoveModifier.Alt;
+        ActivationModifier = MouseEnhanceModifier.Alt;
     }
 
     [RelayCommand]
     private void SelectWinModifier()
     {
-        ActivationModifier = GrabAndMoveModifier.Win;
+        ActivationModifier = MouseEnhanceModifier.Win;
     }
 
     [RelayCommand(CanExecute = nameof(HasUnappliedExcludeChanges))]

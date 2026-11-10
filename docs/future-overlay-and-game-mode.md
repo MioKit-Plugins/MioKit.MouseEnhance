@@ -21,7 +21,7 @@ v1 已交付：修饰键拖移、右键缩放、排除列表、Alt 菜单抑制�
 
 | 位置 | 说明 |
 |------|------|
-| `GrabAndMoveCore.BeginInteractionUnlocked` | 开始交互后可通知 Overlay「显示」 |
+| `WindowDragCore.BeginInteractionUnlocked` | 开始交互后可通知 Overlay「显示」 |
 | `HandleDragMoveUnlocked` / `HandleDragResizeUnlocked` | 每次 `SetWindowPos` 后同步 Overlay 矩形 |
 | `StopInteractionUnlocked` | 隐藏 / 销毁 Overlay |
 | SettingEav | 新增「显示窗口几何」布尔项（默认关，未接线） |
@@ -62,7 +62,7 @@ Hook 回调线程**禁止**直接操作 Avalonia UI；必须调度到 UI 线程�
 
 | 位置 | 说明 |
 |------|------|
-| `GrabAndMoveCore.HandleKeyDown` | 武装修饰键会话前调用 `IsSuppressedByGameMode()`；为 true 则 `Chain` |
+| `WindowDragCore.HandleKeyDown` | 武装修饰键会话前调用 `IsSuppressedByGameMode()`；为 true 则 `Chain` |
 | SettingEav | 新增「游戏模式时禁用」布尔项（默认建议 `true`） |
 
 与排除列表的优先级建议：

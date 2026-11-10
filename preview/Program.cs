@@ -1,6 +1,6 @@
 using Avalonia;
 
-namespace GrabAndMove.Preview;
+namespace MouseEnhance.Preview;
 
 internal static class Program
 {

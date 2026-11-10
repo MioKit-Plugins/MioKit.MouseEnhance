@@ -2,7 +2,7 @@
 param(
     [Parameter(Mandatory = $true)]
     [string]$PackageVersion,
-    [string]$PackageId = "MioKit.GrabAndMove",
+    [string]$PackageId = "MioKit.MouseEnhance",
     [string]$Configuration = "Release",
     [string]$OutputPath
 )
@@ -13,7 +13,7 @@ if ([string]::IsNullOrWhiteSpace($OutputPath)) {
     $OutputPath = Join-Path $PSScriptRoot "artifacts"
 }
 
-$projectPath = Join-Path $PSScriptRoot "plugin\MioKit.GrabAndMove.csproj"
+$projectPath = Join-Path $PSScriptRoot "plugin\MioKit.MouseEnhance.csproj"
 $manifestPath = Join-Path $PSScriptRoot "plugin\plugin.json"
 $forbiddenFields = @("pluginVersion", "releaseState", "releaseDate")
 $forbiddenDlls = @("MioKit.Sdk.dll", "MioKit.SourceGenerate.dll", "MioKit.Webview2.dll", "MioKit.Runtime.dll", "MioKit.Framework.dll")

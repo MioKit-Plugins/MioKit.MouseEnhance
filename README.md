@@ -1,84 +1,72 @@
-# 抓取移动（Grab And Move）
+# 鼠标增强（Mouse Enhance）
 
-按住修饰键（`Alt` 或 `Win`），在窗口**任意位置**拖动即可移动或调整大小——不必瞄准标题栏或细边框。
+Windows 鼠标手势增强插件，运行于 [MioKit](https://github.com/MioKit) 宿主。
 
-左键拖动移动窗口；开启右键缩放后，右键拖动会从最近的边或角调整大小。
+| 功能 | 说明 |
+| --- | --- |
+| **修饰键 + 滚轮** | 调节系统音量 |
+| **修饰键 + 拖动窗口** | 任意位置左键移动、右键缩放（不必瞄准标题栏） |
+| **双击桌面** | 隐藏 / 显示桌面图标 |
+| **双击任务栏** | 显示 / 隐藏桌面 |
 
-> 本插件运行于 [MioKit](https://github.com/MioKit) 宿主，面向 Windows。核心手势算法参考 PowerToys Grab And Move（MIT），见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。本仓库**不是** Microsoft / PowerToys 官方组件。
+窗口拖动手势算法参考 PowerToys Grab And Move（MIT），见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。本仓库**不是** Microsoft / PowerToys 官方组件。
 
 ## 快速开始
 
 1. 在 MioKit 中安装并启用本插件。
-2. 搜索「抓取移动」并回车，打开配置窗口；确认右上角**启用**已打开。
-3. 按住配置中的激活修饰键（默认 `Alt`），在目标窗口内任意位置：
-   - **按住左键拖动** → 移动窗口
-   - **按住右键拖动**（需开启「右键调整大小」）→ 从最近边 / 角缩放
+2. 搜索「鼠标增强」并回车，打开配置窗口。
+3. 按需打开上方四个功能开关。
 
-关闭配置窗口后手势仍会保持运行；要临时停用手势，可关掉配置里的「启用」，或使用搜索节点「停止抓取移动」。
+默认开启「滚轮调音量」与「拖动窗口」；桌面图标与任务栏手势默认关闭。
 
 ## 搜索命令
 
 | 命令 | 说明 |
 | --- | --- |
-| **抓取移动** | 打开配置窗口（主入口） |
-| **启动抓取移动** | 仅启用手势，不打开配置 |
-| **停止抓取移动** | 仅停用手势，不打开配置 |
+| **鼠标增强** | 打开配置窗口（主入口） |
+| **启用窗口拖动** | 仅启用窗口拖动手势 |
+| **停用窗口拖动** | 仅停用窗口拖动手势 |
 
-可为上述结果设置别名或热键，方便快速开关。
+可为上述结果设置别名或热键。
 
-## 手势说明
+## 窗口拖动
 
 | 操作 | 条件 | 效果 |
 | --- | --- | --- |
-| 修饰键 + 左键拖动 | 功能已启用 | 整体移动窗口 |
+| 修饰键 + 左键拖动 | 「拖动窗口」已启用 | 整体移动窗口 |
 | 修饰键 + 右键拖动 | 「右键调整大小」开启 | 按离指针最近的边或角缩放 |
 | 松开修饰键 | — | 结束当前拖移 / 缩放 |
 
-拖移过程中无需点中标题栏；被排除的窗口不会响应手势。
-
-## 配置窗口
-
-配置窗口顶部可查看当前状态（已启用 / 已停用），并一键开关功能。下方「左键 · 移动」「右键 · 调整大小」会随选项即时更新提示文案。
-
-### 手势（更改后立即生效）
-
-| 选项 | 说明 |
-| --- | --- |
-| **激活修饰键 · Alt** | 默认。兼容多数应用；松开时可能触发系统 Alt 窗口菜单，可用下方抑制项处理 |
-| **激活修饰键 · Windows** | 使用 `Win` 键，减少与菜单快捷键冲突；此时「抑制 Alt 窗口菜单」可忽略 |
-| **右键调整大小** | 开启后支持修饰键 + 右键拖动缩放 |
-| **抑制 Alt 窗口菜单** | 仅在选用 Alt 时有效：拖动或缩放后松开 Alt，不再弹出系统窗口菜单 |
-
-### 排除（需点击「应用排除列表」）
-
-每行填写一个**进程名**（如 `notepad.exe`）或**窗口标题关键字**。也可按住列表右侧**准星**，拖到目标窗口后松开，自动填入进程名。
-
-| 列表 | 作用 |
-| --- | --- |
-| **排除窗口** | 这些进程的窗口不可被拖移或缩放 |
-| **排除修饰键** | 这些应用在前台时，不拦截 `Alt` / `Win`，交给应用自己处理（适合游戏、Steam 等） |
-
-编辑后若提示「有未保存的更改」，请点击 **应用排除列表** 才会生效。手势开关与修饰键选项本身会即时保存，无需点应用。
+激活修饰键可选 `Alt`（默认）或 `Windows`。排除列表用于跳过特定进程或把修饰键交还前台应用。
 
 ## 注意事项
 
 - 部分系统窗口、以管理员身份运行且高于 MioKit 权限的程序，可能无法被拖移或缩放。
-- 全屏游戏或重度使用 `Alt` / `Win` 快捷键的应用，建议加入「排除修饰键」或「排除窗口」。
-- 选用 `Win` 键时，注意与系统开始菜单等快捷键的习惯差异；冲突时可改回 `Alt` 或把该应用加入排除。
-- 卸载或停用插件后，手势立即失效；排除列表等设置随插件数据一并清理策略以宿主为准。
+- 全屏游戏或重度使用 `Alt` / `Win` 的应用，建议加入「排除修饰键」或「排除窗口」。
+- 双击桌面仅在空白处切换图标：Hook 返回后使用 MSAA `IAccessible.accHitTest` 检测，再向 `SHELLDLL_DefView` 异步发送 `WM_COMMAND 0x7402`。检测失败时不切换；图标隐藏时允许再次双击显示。
+- 不可直接把本进程的 `LVHITTESTINFO` 指针通过 `LVM_HITTEST` 发送给 Explorer：`WM_USER` 及以上消息不自动封送指针，会造成 Explorer 访问无效内存、黑屏和重启，移出 Hook 或延时不能修复。参见 [SendMessage 文档](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendmessagea) 和 [MSAA 命中测试文档](https://learn.microsoft.com/en-us/windows/win32/api/oleacc/nf-oleacc-iaccessible-acchittest)。
+- 双击任务栏同样延后调用 Shell `ToggleDesktop`。
 
 ## 开发与打包
 
 ```text
-dotnet build plugin/MioKit.GrabAndMove.csproj -c Release
+dotnet build plugin/MioKit.MouseEnhance.csproj -c Release
 ```
+
+Windows 跨进程命中测试回归（需要 .NET 10 SDK，无额外 NuGet 依赖）：
+
+```text
+dotnet run --project tests/DesktopIconHitTest.Regression -c Release
+```
+
+测试在独立进程的原生 `SysListView32` 上验证图标、文字、空白、越界、失效窗口以及 MTA 线程上的 100 组连续命中测试，不操作真实桌面。宿主内仍需验证双击空白处隐藏/显示、双击图标正常打开，以及多显示器和 Explorer 重建后的行为。
 
 本地打包：
 
 ```powershell
-.\pack.ps1 -PackageVersion 0.0.1-beta.5
+.\pack.ps1 -PackageVersion 0.0.1-beta.1
 ```
 
-输出：`artifacts/MioKit.GrabAndMove.<version>.nupkg`。推送 `v*` 标签（如 `v0.0.1-beta.5`）后，GitHub Actions 会用同一脚本打包，并把 `.nupkg` 挂到对应 GitHub Release。
+输出：`artifacts/MioKit.MouseEnhance.<version>.nupkg`。推送 `v*` 标签后，GitHub Actions 会打包并挂到 GitHub Release。
 
 几何 Overlay、Game Mode 抑制等后续能力说明见 [docs/future-overlay-and-game-mode.md](docs/future-overlay-and-game-mode.md)。

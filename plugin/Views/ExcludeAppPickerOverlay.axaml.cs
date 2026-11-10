@@ -1,7 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 
-namespace GrabAndMove.Views;
+namespace MouseEnhance.Views;
 
 public partial class ExcludeAppPickerOverlay : Window
 {

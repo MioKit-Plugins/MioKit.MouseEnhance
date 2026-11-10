@@ -1,14 +1,14 @@
 using System.Diagnostics;
-using GrabAndMove.Models;
+using MouseEnhance.Models;
 
-namespace GrabAndMove.Services;
+namespace MouseEnhance.Services;
 
 /// <summary>
 /// Grab And Move interaction state machine.
-/// Ported from Microsoft PowerToys <c>src/modules/GrabAndMove/GrabAndMove/main.cpp</c> (MIT).
+/// Ported from Microsoft PowerToys <c>src/modules/MouseEnhance/MouseEnhance/main.cpp</c> (MIT).
 /// Copyright (c) Microsoft Corporation. Overlay and Game Mode gates are intentionally omitted in v1.
 /// </summary>
-internal sealed class GrabAndMoveCore
+internal sealed class WindowDragCore
 {
     private const long ThrottleIntervalMs = 16;
 
@@ -16,7 +16,7 @@ internal sealed class GrabAndMoveCore
     private readonly object _sync = new();
     private readonly bool[] _keyHeld = new bool[256];
 
-    private GrabAndMoveSettings _settings = new();
+    private WindowDragSettings _settings = new();
     private readonly ModifierSession _modifierSession = new();
     private readonly InteractionState _interaction = new();
     private int _heldNonModifierCount;
@@ -24,17 +24,26 @@ internal sealed class GrabAndMoveCore
     private uint _swallowNextModifierUpVk;
     private long _lastMoveTick;
 
-    public GrabAndMoveCore(ModifierKeyInjector injector)
+    public WindowDragCore(ModifierKeyInjector injector)
     {
         ArgumentNullException.ThrowIfNull(injector);
         _injector = injector;
     }
 
-    public void UpdateSettings(GrabAndMoveSettings settings)
+    public void UpdateSettings(WindowDragSettings settings)
     {
         ArgumentNullException.ThrowIfNull(settings);
         lock (_sync)
             _settings = CloneSettings(settings);
+    }
+
+    public bool IsInteracting
+    {
+        get
+        {
+            lock (_sync)
+                return _interaction.Phase != InteractionPhase.Idle;
+        }
     }
 
     public void Reset()
@@ -100,7 +109,7 @@ internal sealed class GrabAndMoveCore
             _modifierSession.Modifier = _settings.ModifierKey;
             _modifierSession.Pressed = true;
             _modifierSession.Absorbed =
-                _settings.ModifierKey == GrabAndMoveModifier.Win || _settings.ShouldAbsorbAlt;
+                _settings.ModifierKey == MouseEnhanceModifier.Win || _settings.ShouldAbsorbAlt;
             _modifierSession.Key = new CapturedKey
             {
                 Vk = vk,
@@ -615,7 +624,7 @@ internal sealed class GrabAndMoveCore
 
     private bool HasModifierSession() => _modifierSession.Pressed || _modifierSession.Absorbed;
 
-    private bool HasConflictingInput(GrabAndMoveModifier modifier)
+    private bool HasConflictingInput(MouseEnhanceModifier modifier)
     {
         if (_heldNonModifierCount > 0)
             return true;
@@ -629,12 +638,12 @@ internal sealed class GrabAndMoveCore
 
         return modifier switch
         {
-            GrabAndMoveModifier.Alt =>
+            MouseEnhanceModifier.Alt =>
                 GrabWindowNative.IsKeyDown(vkControl) ||
                 GrabWindowNative.IsKeyDown(vkShift) ||
                 GrabWindowNative.IsKeyDown(vkLWin) ||
                 GrabWindowNative.IsKeyDown(vkRWin),
-            GrabAndMoveModifier.Win =>
+            MouseEnhanceModifier.Win =>
                 GrabWindowNative.IsKeyDown(vkControl) ||
                 GrabWindowNative.IsKeyDown(vkShift) ||
                 GrabWindowNative.IsKeyDown(vkMenu),
@@ -704,10 +713,10 @@ internal sealed class GrabAndMoveCore
         _ => 0u
     };
 
-    private static bool IsModifierKey(uint vk, GrabAndMoveModifier modifier) => modifier switch
+    private static bool IsModifierKey(uint vk, MouseEnhanceModifier modifier) => modifier switch
     {
-        GrabAndMoveModifier.Alt => vk is 0x12 or 0xA4 or 0xA5, // VK_MENU / LMENU / RMENU
-        GrabAndMoveModifier.Win => vk is 0x5B or 0x5C, // LWIN / RWIN
+        MouseEnhanceModifier.Alt => vk is 0x12 or 0xA4 or 0xA5, // VK_MENU / LMENU / RMENU
+        MouseEnhanceModifier.Win => vk is 0x5B or 0x5C, // LWIN / RWIN
         _ => false
     };
 
@@ -717,7 +726,7 @@ internal sealed class GrabAndMoveCore
             0x12 or 0xA4 or 0xA5 or // Alt
             0x5B or 0x5C; // Win
 
-    private static GrabAndMoveSettings CloneSettings(GrabAndMoveSettings source) => new()
+    private static WindowDragSettings CloneSettings(WindowDragSettings source) => new()
     {
         ModifierKey = source.ModifierKey,
         ShouldAbsorbAlt = source.ShouldAbsorbAlt,

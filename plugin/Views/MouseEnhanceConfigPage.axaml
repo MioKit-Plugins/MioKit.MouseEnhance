@@ -3,14 +3,13 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:shad="https://github.com/tiny-isle/Ti.Avalonia.Shadcn"
-             xmlns:views="clr-namespace:GrabAndMove.Views"
+             xmlns:views="clr-namespace:MouseEnhance.Views"
              mc:Ignorable="d"
              d:DesignWidth="560"
-             d:DesignHeight="640"
-             x:Class="GrabAndMove.Views.GrabAndMoveConfigPage"
-             x:DataType="views:GrabAndMoveConfigViewModel">
+             d:DesignHeight="720"
+             x:Class="MouseEnhance.Views.MouseEnhanceConfigPage"
+             x:DataType="views:MouseEnhanceConfigViewModel">
   <UserControl.Styles>
-    <!-- Keep text colors fixed; selection is border/background only (no layout or contrast flip). -->
     <Style Selector="Button.modifier-card">
       <Setter Property="Background" Value="{DynamicResource ShadCardBrush}" />
       <Setter Property="BorderBrush" Value="{DynamicResource ShadBorderBrush}" />
@@ -75,109 +74,126 @@
               Padding="16,18"
               CornerRadius="16"
               Background="{DynamicResource ShadMutedBrush}">
-        <StackPanel Spacing="14">
-          <Grid ColumnDefinitions="*,Auto">
-            <StackPanel Orientation="Horizontal"
-                        Spacing="10"
-                        VerticalAlignment="Center">
-              <Border Width="36"
-                      Height="36"
-                      CornerRadius="10"
-                      Background="{DynamicResource ShadPrimaryBrush}"
+        <StackPanel Spacing="6">
+          <StackPanel Orientation="Horizontal"
+                      Spacing="10"
                       VerticalAlignment="Center">
-                <LucideIcon Kind="Move"
-                            Size="18"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
-                            Foreground="{DynamicResource ShadPrimaryForegroundBrush}" />
-              </Border>
-              <StackPanel VerticalAlignment="Center"
-                          Spacing="2">
-                <TextBlock Text="抓取移动"
-                           FontSize="16"
-                           FontWeight="SemiBold"
-                           Foreground="{DynamicResource ShadForegroundBrush}" />
-                <TextBlock Text="按住修饰键，在窗口任意位置拖动"
-                           Classes="section-desc" />
-              </StackPanel>
-            </StackPanel>
-
-            <StackPanel Grid.Column="1"
-                        Spacing="8"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Center">
-              <Border Padding="10,4"
-                      CornerRadius="999"
-                      HorizontalAlignment="Right"
-                      MinWidth="64"
-                      Background="{DynamicResource ShadCardBrush}"
-                      BorderBrush="{DynamicResource ShadBorderBrush}"
-                      BorderThickness="1">
-                <TextBlock Text="{Binding StatusText}"
-                           FontSize="12"
-                           FontWeight="SemiBold"
-                           HorizontalAlignment="Center"
-                           Foreground="{DynamicResource ShadForegroundBrush}" />
-              </Border>
-              <StackPanel Orientation="Horizontal"
-                          Spacing="8"
-                          HorizontalAlignment="Right">
-                <TextBlock Text="启用"
-                           VerticalAlignment="Center"
-                           FontSize="12"
-                           Foreground="{DynamicResource ShadForegroundBrush}" />
-                <ToggleSwitch IsChecked="{Binding IsFeatureEnabled}"
-                              OffContent=""
-                              OnContent="" />
-              </StackPanel>
-            </StackPanel>
-          </Grid>
-
-          <Grid ColumnDefinitions="*,8,*"
-                Opacity="{Binding GestureCardsOpacity}">
-            <Border Grid.Column="0"
-                    Padding="12"
-                    CornerRadius="12"
-                    MinHeight="64"
-                    Background="{DynamicResource ShadCardBrush}"
-                    BorderBrush="{DynamicResource ShadBorderBrush}"
-                    BorderThickness="1"
-                    IsHitTestVisible="False">
-              <StackPanel Spacing="4">
-                <TextBlock Text="左键 · 移动"
-                           FontWeight="SemiBold"
-                           Foreground="{DynamicResource ShadForegroundBrush}" />
-                <TextBlock Text="{Binding MoveGestureHint}"
-                           Classes="section-desc" />
-              </StackPanel>
+            <Border Width="36"
+                    Height="36"
+                    CornerRadius="10"
+                    Background="{DynamicResource ShadPrimaryBrush}"
+                    VerticalAlignment="Center">
+              <LucideIcon Kind="Pointer"
+                          Size="18"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Center"
+                          Foreground="{DynamicResource ShadPrimaryForegroundBrush}" />
             </Border>
-
-            <Border Grid.Column="2"
-                    Padding="12"
-                    CornerRadius="12"
-                    MinHeight="64"
-                    Background="{DynamicResource ShadCardBrush}"
-                    BorderBrush="{DynamicResource ShadBorderBrush}"
-                    BorderThickness="1"
-                    Opacity="{Binding ResizeHintOpacity}"
-                    IsHitTestVisible="False">
-              <StackPanel Spacing="4">
-                <TextBlock Text="右键 · 调整大小"
-                           FontWeight="SemiBold"
-                           Foreground="{DynamicResource ShadForegroundBrush}" />
-                <TextBlock Text="{Binding ResizeGestureHint}"
-                           Classes="section-desc" />
-              </StackPanel>
-            </Border>
-          </Grid>
+            <StackPanel VerticalAlignment="Center"
+                        Spacing="2">
+              <TextBlock Text="鼠标增强"
+                         FontSize="16"
+                         FontWeight="SemiBold"
+                         Foreground="{DynamicResource ShadForegroundBrush}" />
+              <TextBlock Text="滚轮、窗口拖动与桌面快捷手势"
+                         Classes="section-desc" />
+            </StackPanel>
+          </StackPanel>
         </StackPanel>
       </Border>
 
       <StackPanel Spacing="6">
-        <TextBlock Text="手势"
+        <TextBlock Text="功能"
+                   Classes="section-title" />
+        <TextBlock Text="每个功能可独立开关，更改后立即生效"
+                   Classes="section-desc" />
+
+        <Grid ColumnDefinitions="*,8,*"
+              RowDefinitions="Auto,8,Auto"
+              Margin="0,4,0,0">
+          <shad:SettingItemControl Grid.Row="0"
+                                   Grid.Column="0"
+                                   Title="{Binding VolumeCardTitle}"
+                                   Description="{Binding VolumeCardDescription}">
+            <ToggleSwitch IsChecked="{Binding VolumeScrollEnabled}"
+                          OffContent=""
+                          OnContent="" />
+          </shad:SettingItemControl>
+
+          <shad:SettingItemControl Grid.Row="0"
+                                   Grid.Column="2"
+                                   Title="{Binding WindowDragCardTitle}"
+                                   Description="{Binding WindowDragCardDescription}">
+            <ToggleSwitch IsChecked="{Binding WindowDragEnabled}"
+                          OffContent=""
+                          OnContent="" />
+          </shad:SettingItemControl>
+
+          <shad:SettingItemControl Grid.Row="2"
+                                   Grid.Column="0"
+                                   Title="双击桌面切换图标"
+                                   Description="双击桌面空白处隐藏或显示桌面图标。">
+            <ToggleSwitch IsChecked="{Binding DesktopIconsToggleEnabled}"
+                          OffContent=""
+                          OnContent="" />
+          </shad:SettingItemControl>
+
+          <shad:SettingItemControl Grid.Row="2"
+                                   Grid.Column="2"
+                                   Title="双击任务栏显示桌面"
+                                   Description="双击任务栏空白处显示或隐藏桌面。">
+            <ToggleSwitch IsChecked="{Binding TaskbarShowDesktopEnabled}"
+                          OffContent=""
+                          OnContent="" />
+          </shad:SettingItemControl>
+        </Grid>
+      </StackPanel>
+
+      <StackPanel Spacing="6"
+                  Opacity="{Binding WindowDragSectionOpacity}"
+                  IsEnabled="{Binding WindowDragEnabled}">
+        <TextBlock Text="窗口拖动"
                    Classes="section-title" />
         <TextBlock Text="更改后立即生效，无需保存"
                    Classes="section-desc" />
+
+        <Grid ColumnDefinitions="*,8,*"
+              Opacity="{Binding GestureCardsOpacity}">
+          <Border Grid.Column="0"
+                  Padding="12"
+                  CornerRadius="12"
+                  MinHeight="64"
+                  Background="{DynamicResource ShadCardBrush}"
+                  BorderBrush="{DynamicResource ShadBorderBrush}"
+                  BorderThickness="1"
+                  IsHitTestVisible="False">
+            <StackPanel Spacing="4">
+              <TextBlock Text="左键 · 移动"
+                         FontWeight="SemiBold"
+                         Foreground="{DynamicResource ShadForegroundBrush}" />
+              <TextBlock Text="{Binding MoveGestureHint}"
+                         Classes="section-desc" />
+            </StackPanel>
+          </Border>
+
+          <Border Grid.Column="2"
+                  Padding="12"
+                  CornerRadius="12"
+                  MinHeight="64"
+                  Background="{DynamicResource ShadCardBrush}"
+                  BorderBrush="{DynamicResource ShadBorderBrush}"
+                  BorderThickness="1"
+                  Opacity="{Binding ResizeHintOpacity}"
+                  IsHitTestVisible="False">
+            <StackPanel Spacing="4">
+              <TextBlock Text="右键 · 调整大小"
+                         FontWeight="SemiBold"
+                         Foreground="{DynamicResource ShadForegroundBrush}" />
+              <TextBlock Text="{Binding ResizeGestureHint}"
+                         Classes="section-desc" />
+            </StackPanel>
+          </Border>
+        </Grid>
 
         <TextBlock Text="激活修饰键"
                    Margin="0,6,0,0"
@@ -234,7 +250,9 @@
         </shad:SettingItemControl>
       </StackPanel>
 
-      <StackPanel Spacing="6">
+      <StackPanel Spacing="6"
+                  Opacity="{Binding WindowDragSectionOpacity}"
+                  IsEnabled="{Binding WindowDragEnabled}">
         <TextBlock Text="排除"
                    Classes="section-title" />
         <TextBlock Text="每行一个进程名或窗口标题关键字。也可按住右侧准星，拖到目标窗口后松开自动填入。"

@@ -1,7 +1,7 @@
 using Avalonia.Controls;
-using GrabAndMove.Views;
+using MouseEnhance.Views;
 
-namespace GrabAndMove.Preview.Views;
+namespace MouseEnhance.Preview.Views;
 
 public partial class MainWindow : Window
 {
@@ -14,9 +14,9 @@ public partial class MainWindow : Window
     private void LoadPluginPreview()
     {
         // Layout preview without host DI: bind empty VM shell (toggles won't persist).
-        PluginPreviewHost.Content = new GrabAndMoveConfigPage
+        PluginPreviewHost.Content = new MouseEnhanceConfigPage
         {
-            DataContext = GrabAndMoveConfigViewModel.CreateDesignPreview()
+            DataContext = MouseEnhanceConfigViewModel.CreateDesignPreview()
         };
     }
 }

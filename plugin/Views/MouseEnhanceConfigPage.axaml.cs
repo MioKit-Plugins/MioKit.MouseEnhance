@@ -1,13 +1,13 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.VisualTree;
-using GrabAndMove.Services;
+using MouseEnhance.Services;
 using Ti.Avalonia.Shadcn.Controls.Toast;
 using Ti.Avalonia.Shadcn.Extensions;
 
-namespace GrabAndMove.Views;
+namespace MouseEnhance.Views;
 
-public partial class GrabAndMoveConfigPage : UserControl
+public partial class MouseEnhanceConfigPage : UserControl
 {
     private enum PickTarget
     {
@@ -21,12 +21,12 @@ public partial class GrabAndMoveConfigPage : UserControl
     private string? _hoveredProcess;
     private ExcludeAppPickerOverlay? _overlay;
 
-    public GrabAndMoveConfigPage()
+    public MouseEnhanceConfigPage()
     {
         InitializeComponent();
     }
 
-    private GrabAndMoveConfigViewModel? Vm => DataContext as GrabAndMoveConfigViewModel;
+    private MouseEnhanceConfigViewModel? Vm => DataContext as MouseEnhanceConfigViewModel;
 
     private void WindowExcludePicker_OnPointerPressed(object? sender, PointerPressedEventArgs e) =>
         BeginPick(PickTarget.WindowExclude, sender as Control, e);
@@ -156,7 +156,7 @@ public partial class GrabAndMoveConfigPage : UserControl
             return;
 
         _overlay = new ExcludeAppPickerOverlay();
-        WindowManager.SetOwnerId(_overlay, GrabAndMoveConst.PluginId);
+        WindowManager.SetOwnerId(_overlay, MouseEnhanceConst.PluginId);
         _overlay.Opened += (_, _) =>
         {
             var handle = TryGetHwnd(_overlay);

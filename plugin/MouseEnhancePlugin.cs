@@ -1,11 +1,11 @@
-using GrabAndMove.Nodes;
-using GrabAndMove.Services;
+using MouseEnhance.Nodes;
+using MouseEnhance.Services;
 
-namespace GrabAndMove;
+namespace MouseEnhance;
 
-[EavType(GrabAndMoveConst.PluginTypeId)]
-public class GrabAndMovePlugin : PluginBase,
-    IGrabAndMovePluginFeature,
+[EavType(MouseEnhanceConst.PluginTypeId)]
+public class MouseEnhancePlugin : PluginBase,
+    IMouseEnhancePluginFeature,
     IPluginMainWindowFeature,
     IInvokeFeature,
     ISearchableFeature,
@@ -14,19 +14,22 @@ public class GrabAndMovePlugin : PluginBase,
     IAliasNameFeature,
     IResultActionProviderFeature
 {
-    public GrabAndMovePlugin() : base(GrabAndMoveConst.PluginId)
+    public MouseEnhancePlugin() : base(MouseEnhanceConst.PluginId)
     {
-        Name = "抓取移动";
-        Description = "按住修饰键在窗口任意位置拖动以移动或调整大小";
+        Name = "鼠标增强";
+        Description = "修饰键滚轮调音量、拖动窗口，以及双击桌面/任务栏快捷操作";
         PreloadPropertySource =
         [
             ..PreloadPropertySource,
-            GrabAndMoveExtension.FeatureEnabledProperty,
-            GrabAndMoveExtension.ActivationModifierProperty,
-            GrabAndMoveExtension.PreventAltWindowMenuProperty,
-            GrabAndMoveExtension.RightClickResizeEnabledProperty,
-            GrabAndMoveExtension.ExcludedAppsProperty,
-            GrabAndMoveExtension.ModifierExcludedAppsProperty,
+            MouseEnhanceExtension.WindowDragEnabledProperty,
+            MouseEnhanceExtension.ActivationModifierProperty,
+            MouseEnhanceExtension.PreventAltWindowMenuProperty,
+            MouseEnhanceExtension.RightClickResizeEnabledProperty,
+            MouseEnhanceExtension.ExcludedAppsProperty,
+            MouseEnhanceExtension.ModifierExcludedAppsProperty,
+            MouseEnhanceExtension.VolumeScrollEnabledProperty,
+            MouseEnhanceExtension.DesktopIconsToggleEnabledProperty,
+            MouseEnhanceExtension.TaskbarShowDesktopEnabledProperty,
             AliasNameExtension.AliasNameProperty,
             HotkeyExtension.HotkeyProperty,
             RecentExtension.UseCountProperty,
@@ -34,15 +37,15 @@ public class GrabAndMovePlugin : PluginBase,
         ];
     }
 
-    public override Guid MioType => GrabAndMoveConst.PluginType;
+    public override Guid MioType => MouseEnhanceConst.PluginType;
 
     protected override async Task StartCoreAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var dataProvider = MioIoc.Resolve<IMioDataProvider>();
-        var groupExisted = await dataProvider.ExistsAsync(GrabAndMoveConst.SearchGroupId);
-        var startExisted = await dataProvider.ExistsAsync(GrabAndMoveConst.StartNodeId);
-        var stopExisted = await dataProvider.ExistsAsync(GrabAndMoveConst.StopNodeId);
+        var groupExisted = await dataProvider.ExistsAsync(MouseEnhanceConst.SearchGroupId);
+        var startExisted = await dataProvider.ExistsAsync(MouseEnhanceConst.StartNodeId);
+        var stopExisted = await dataProvider.ExistsAsync(MouseEnhanceConst.StopNodeId);
 
         await EnsureSubTreeLoadedAsync();
         cancellationToken.ThrowIfCancellationRequested();
@@ -50,28 +53,28 @@ public class GrabAndMovePlugin : PluginBase,
         var defaults = new Dictionary<MioObject, Dictionary<IAttachEavProperty, object>>();
         if (!groupExisted)
         {
-            var group = this.FindFirstDescendant<GrabAndMoveSearchGroup>(
-                node => node.Id == GrabAndMoveConst.SearchGroupId)!;
-            group.Name = "抓取移动";
-            group.Description = "打开配置，或启动 / 停止手势";
+            var group = this.FindFirstDescendant<MouseEnhanceSearchGroup>(
+                node => node.Id == MouseEnhanceConst.SearchGroupId)!;
+            group.Name = "鼠标增强";
+            group.Description = "打开配置，或启用 / 停用窗口拖动";
             defaults[group] = CreateNameDefaults(group);
         }
 
         if (!startExisted)
         {
-            var start = this.FindFirstDescendant<StartGrabAndMoveNode>(
-                node => node.Id == GrabAndMoveConst.StartNodeId)!;
-            start.Name = "启动抓取移动";
-            start.Description = "启用手势，不打开配置窗口";
+            var start = this.FindFirstDescendant<StartMouseEnhanceNode>(
+                node => node.Id == MouseEnhanceConst.StartNodeId)!;
+            start.Name = "启用窗口拖动";
+            start.Description = "仅启用窗口拖动手势，不打开配置窗口";
             defaults[start] = CreateNameDefaults(start);
         }
 
         if (!stopExisted)
         {
-            var stop = this.FindFirstDescendant<StopGrabAndMoveNode>(
-                node => node.Id == GrabAndMoveConst.StopNodeId)!;
-            stop.Name = "停止抓取移动";
-            stop.Description = "停用手势，不打开配置窗口";
+            var stop = this.FindFirstDescendant<StopMouseEnhanceNode>(
+                node => node.Id == MouseEnhanceConst.StopNodeId)!;
+            stop.Name = "停用窗口拖动";
+            stop.Description = "仅停用窗口拖动手势，不打开配置窗口";
             defaults[stop] = CreateNameDefaults(stop);
         }
 
@@ -80,12 +83,12 @@ public class GrabAndMovePlugin : PluginBase,
     }
 
     public override Task EnsureSubTreeLoadedAsync()
-        => EnsureTreeLoadedAsync<GrabAndMoveSearchGroup>(GrabAndMoveConst.SearchGroupId);
+        => EnsureTreeLoadedAsync<MouseEnhanceSearchGroup>(MouseEnhanceConst.SearchGroupId);
 
     public void OpenPluginMainWindow()
     {
-        GrabAndMoveRegister.Instance.ComponentContext
-            .Resolve<GrabAndMoveWindowService>()
+        MouseEnhanceRegister.Instance.ComponentContext
+            .Resolve<MouseEnhanceWindowService>()
             .ShowConfigWindowAsync();
     }
 
@@ -112,7 +115,7 @@ public class GrabAndMovePlugin : PluginBase,
             Title = title,
             Description = Description,
             MatchResult = match!.Value,
-            Source = "抓取移动"
+            Source = "鼠标增强"
         });
         return ValueTask.CompletedTask;
     }

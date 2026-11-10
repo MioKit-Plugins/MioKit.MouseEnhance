@@ -5,7 +5,7 @@
 This plugin ports interaction logic from the PowerToys **Grab And Move** module.
 
 - Source: https://github.com/microsoft/PowerToys
-- Path: `src/modules/GrabAndMove/GrabAndMove/main.cpp`
+- Path: `src/modules/MouseEnhance/MouseEnhance/main.cpp`
 - License: MIT License
 - Copyright (c) Microsoft Corporation. All rights reserved.
 

@@ -1,9 +1,9 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using GrabAndMove.Preview.Views;
+using MouseEnhance.Preview.Views;
 
-namespace GrabAndMove.Preview;
+namespace MouseEnhance.Preview;
 
 public partial class App : Application
 {

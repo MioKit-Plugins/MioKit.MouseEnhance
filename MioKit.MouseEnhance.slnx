@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/Plugin/">
+    <Project Path="plugin/MioKit.MouseEnhance.csproj" />
+  </Folder>
+  <Folder Name="/Preview/">
+    <Project Path="preview/MioKit.MouseEnhance.Preview.csproj" />
+  </Folder>
+  <Folder Name="/Publish/" />
+  <Folder Name="/Tests/">
+    <Project Path="tests/DesktopIconHitTest.Regression/DesktopIconHitTest.Regression.csproj" />
+  </Folder>
+</Solution>

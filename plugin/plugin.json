@@ -1,12 +1,12 @@
 {
   "metadataVersion": "1.0",
-  "id": "com.tinyisle.plugin.grab-and-move",
-  "name": "抓取移动",
-  "description": "按住修饰键后在窗口任意位置拖动以移动或调整大小",
-  "category": "Category",
+  "id": "com.tinyisle.plugin.mouse-enhance",
+  "name": "鼠标增强",
+  "description": "修饰键滚轮调音量、拖动窗口，以及双击桌面切换图标、双击任务栏显示桌面",
+  "category": "Tools",
   "author": "tinyisle",
   "icon": "Assets/icon.png",
-  "assembly": "MioKit.GrabAndMove.dll",
+  "assembly": "MioKit.MouseEnhance.dll",
   "minSdkVersion": "1.2.3",
   "minHostVersion": "1.2.3",
   "nugetDependents": []
