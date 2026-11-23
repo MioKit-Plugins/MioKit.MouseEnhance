@@ -46,6 +46,24 @@ internal sealed class WindowDragCore
         }
     }
 
+    public byte AbsorbedModifier
+    {
+        get
+        {
+            lock (_sync)
+                return _modifierSession.Pressed && _modifierSession.Absorbed ? (byte)_modifierSession.Key.Vk : (byte)0;
+        }
+    }
+
+    public void MarkAbsorbedModifierConsumed()
+    {
+        lock (_sync)
+        {
+            if (_modifierSession.Absorbed)
+                _modifierSession.Consumed = true;
+        }
+    }
+
     public void Reset()
     {
         lock (_sync)

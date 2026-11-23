@@ -1,29 +1,23 @@
 <shad:ShadWindow xmlns="https://github.com/avaloniaui"
                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-                 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                  xmlns:shad="https://github.com/tiny-isle/Ti.Avalonia.Shadcn"
                  xmlns:mio="https://github.com/tiny-isle/MioKit"
                  xmlns:views="clr-namespace:MouseEnhance.Views"
-                 mc:Ignorable="d"
-                 d:DesignWidth="600"
-                 d:DesignHeight="680"
-                 Width="600"
-                 Height="680"
-                 MinWidth="520"
-                 MinHeight="560"
+                 Width="960"
+                 Height="720"
+                 MinWidth="460"
+                 MinHeight="480"
                  CanPin="True"
                  WindowStartupLocation="CenterScreen"
                  x:Class="MouseEnhance.Views.MouseEnhanceConfigWindow"
-                 x:DataType="views:MouseEnhanceConfigViewModel"
                  Title="鼠标增强">
   <Interaction.Behaviors>
     <mio:PluginWindowBehavior Type="com.tinyisle.plugin.mouse-enhance" />
   </Interaction.Behaviors>
 
-  <shad:ShadWindow.Hosts>
-    <shad:ShadToastHost />
-  </shad:ShadWindow.Hosts>
-
-  <views:MouseEnhanceConfigPage />
+  <Grid>
+    <views:MouseEnhanceSettingsWebView x:Name="SettingsWebView" />
+    <TextBlock x:Name="LoadError" IsVisible="False" Margin="24"
+               TextWrapping="Wrap" VerticalAlignment="Center" />
+  </Grid>
 </shad:ShadWindow>

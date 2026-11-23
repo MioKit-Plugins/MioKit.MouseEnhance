@@ -1,3 +1,4 @@
+using MouseEnhance.Models;
 using MouseEnhance.Nodes;
 using MouseEnhance.Services;
 
@@ -17,7 +18,7 @@ public class MouseEnhancePlugin : PluginBase,
     public MouseEnhancePlugin() : base(MouseEnhanceConst.PluginId)
     {
         Name = "鼠标增强";
-        Description = "修饰键滚轮调音量、拖动窗口，以及双击桌面/任务栏快捷操作";
+        Description = "滚轮调音量、窗口拖动、桌面快捷手势、寻找鼠标和光标环绕";
         PreloadPropertySource =
         [
             ..PreloadPropertySource,
@@ -30,6 +31,8 @@ public class MouseEnhancePlugin : PluginBase,
             MouseEnhanceExtension.VolumeScrollEnabledProperty,
             MouseEnhanceExtension.DesktopIconsToggleEnabledProperty,
             MouseEnhanceExtension.TaskbarShowDesktopEnabledProperty,
+            MouseEnhanceExtension.FindMouseSettingsProperty,
+            MouseEnhanceExtension.CursorWrapSettingsProperty,
             AliasNameExtension.AliasNameProperty,
             HotkeyExtension.HotkeyProperty,
             RecentExtension.UseCountProperty,
@@ -39,10 +42,16 @@ public class MouseEnhancePlugin : PluginBase,
 
     public override Guid MioType => MouseEnhanceConst.PluginType;
 
+    internal FindMouseSettings ReadFindMouseSettings() =>
+        (this.GetFindMouseSettings() ?? new FindMouseSettings()).Normalize();
+
+    internal CursorWrapSettings ReadCursorWrapSettings() =>
+        (this.GetCursorWrapSettings() ?? new CursorWrapSettings()).Normalize();
+
     protected override async Task StartCoreAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var dataProvider = MioIoc.Resolve<IMioDataProvider>();
+        var dataProvider = Context.GetRequiredService<IMioDataProvider>();
         var groupExisted = await dataProvider.ExistsAsync(MouseEnhanceConst.SearchGroupId);
         var startExisted = await dataProvider.ExistsAsync(MouseEnhanceConst.StartNodeId);
         var stopExisted = await dataProvider.ExistsAsync(MouseEnhanceConst.StopNodeId);
@@ -56,7 +65,7 @@ public class MouseEnhancePlugin : PluginBase,
             var group = this.FindFirstDescendant<MouseEnhanceSearchGroup>(
                 node => node.Id == MouseEnhanceConst.SearchGroupId)!;
             group.Name = "鼠标增强";
-            group.Description = "打开配置，或启用 / 停用窗口拖动";
+            group.Description = "打开配置，或控制窗口拖动和光标环绕";
             defaults[group] = CreateNameDefaults(group);
         }
 
@@ -78,8 +87,25 @@ public class MouseEnhancePlugin : PluginBase,
             defaults[stop] = CreateNameDefaults(stop);
         }
 
+        var startCursorWrap = this.FindFirstDescendant<StartCursorWrapNode>(
+            node => node.Id == MouseEnhanceConst.StartCursorWrapNodeId)!;
+        var stopCursorWrap = this.FindFirstDescendant<StopCursorWrapNode>(
+            node => node.Id == MouseEnhanceConst.StopCursorWrapNodeId)!;
+        InitializeCursorWrapNode(startCursorWrap, "启动光标环绕", "启用并激活光标环绕");
+        InitializeCursorWrapNode(stopCursorWrap, "停止光标环绕", "暂停本次运行的光标环绕");
+
         if (defaults.Count > 0)
             await dataProvider.SaveObjectsAsync(defaults.Keys.ToArray(), defaults);
+
+        void InitializeCursorWrapNode(CursorWrapNode node, string name, string description)
+        {
+            if (!string.IsNullOrWhiteSpace(node.Name))
+                return;
+
+            node.Name = name;
+            node.Description = description;
+            defaults[node] = CreateNameDefaults(node);
+        }
     }
 
     public override Task EnsureSubTreeLoadedAsync()

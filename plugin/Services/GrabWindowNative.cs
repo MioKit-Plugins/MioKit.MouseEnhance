@@ -20,11 +20,11 @@ internal static class GrabWindowNative
     private const uint SwpAsyncWindowPos = 0x4000;
     private const uint GaRoot = 2;
     private const int GwlStyle = -16;
-    private const int GwlExStyle = -20;
-    private const long WsExLayered = 0x00080000L;
-    private const long WsExTransparent = 0x00000020L;
     private const int WsThickFrame = 0x00040000;
     private const int SwRestore = 9;
+    private const int VkLeftButton = 0x01;
+    private const int VkRightButton = 0x02;
+    private const int SmSwapButton = 23;
     private const int SmCxDrag = 68;
     private const int SmCyDrag = 69;
     private const int SmRemoteSession = 0x1000;
@@ -74,7 +74,7 @@ internal static class GrabWindowNative
             rect.Height,
             SwpNoZOrder | SwpNoActivate | SwpAsyncWindowPos);
 
-    public static nint ResolveTargetWindow(ScreenPoint point)
+    public static nint ResolveTargetWindow(ScreenPoint point, bool preferRemoteForeground = true)
     {
         nint Normalize(nint candidate)
         {
@@ -91,7 +91,7 @@ internal static class GrabWindowNative
             return candidate;
         }
 
-        if (GetSystemMetrics(SmRemoteSession) != 0)
+        if (preferRemoteForeground && GetSystemMetrics(SmRemoteSession) != 0)
         {
             var foreground = Normalize(GetForegroundWindow());
             if (foreground != 0)
@@ -184,6 +184,8 @@ internal static class GrabWindowNative
 
     public static bool IsKeyDown(int vk) => (GetAsyncKeyState(vk) & 0x8000) != 0;
 
+    public static int PrimaryMouseButtonVirtualKey => GetSystemMetrics(SmSwapButton) == 0 ? VkLeftButton : VkRightButton;
+
     public static bool TryGetCursorPosition(out int x, out int y)
     {
         x = 0;
@@ -202,40 +204,6 @@ internal static class GrabWindowNative
         return string.IsNullOrWhiteSpace(path)
             ? string.Empty
             : Path.GetFileName(path);
-    }
-
-    public static bool TryGetWindowBounds(nint handle, out int x, out int y, out int width, out int height)
-    {
-        x = y = width = height = 0;
-        if (!TryGetWindowRect(handle, out var rect))
-            return false;
-
-        x = rect.Left;
-        y = rect.Top;
-        width = rect.Width;
-        height = rect.Height;
-        return width > 0 && height > 0;
-    }
-
-    public static void SetClickThrough(nint handle, bool enabled)
-    {
-        if (!IsWindow(handle))
-            return;
-
-        var style = IntPtr.Size == 8
-            ? GetWindowLongPtr(handle, GwlExStyle).ToInt64()
-            : GetWindowLong(handle, GwlExStyle);
-        var updated = enabled
-            ? style | WsExLayered | WsExTransparent
-            : style & ~WsExTransparent;
-
-        if (updated == style)
-            return;
-
-        if (IntPtr.Size == 8)
-            _ = SetWindowLongPtr(handle, GwlExStyle, (nint)updated);
-        else
-            _ = SetWindowLong(handle, GwlExStyle, unchecked((int)updated));
     }
 
     public static bool IsShellExperienceExcluded(nint hwnd)
@@ -354,12 +322,6 @@ internal static class GrabWindowNative
 
     [DllImport("user32.dll", EntryPoint = "GetWindowLongPtr")]
     private static extern nint GetWindowLongPtr(nint hWnd, int nIndex);
-
-    [DllImport("user32.dll", EntryPoint = "SetWindowLong", SetLastError = true)]
-    private static extern int SetWindowLong(nint hWnd, int nIndex, int value);
-
-    [DllImport("user32.dll", EntryPoint = "SetWindowLongPtr", SetLastError = true)]
-    private static extern nint SetWindowLongPtr(nint hWnd, int nIndex, nint value);
 
     [DllImport("kernel32.dll", SetLastError = true)]
     private static extern nint OpenProcess(uint dwDesiredAccess, bool bInheritHandle, uint dwProcessId);

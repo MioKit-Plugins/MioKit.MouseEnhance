@@ -20,6 +20,18 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          package_json_file: plugin/vue-ui/package.json
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+          cache-dependency-path: plugin/vue-ui/pnpm-lock.yaml
+
       - name: Resolve package version
         id: version
         shell: pwsh

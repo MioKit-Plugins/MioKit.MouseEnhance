@@ -14,6 +14,7 @@ if ([string]::IsNullOrWhiteSpace($OutputPath)) {
 }
 
 $projectPath = Join-Path $PSScriptRoot "plugin\MioKit.MouseEnhance.csproj"
+$vuePath = Join-Path $PSScriptRoot "plugin\vue-ui"
 $manifestPath = Join-Path $PSScriptRoot "plugin\plugin.json"
 $forbiddenFields = @("pluginVersion", "releaseState", "releaseDate")
 $forbiddenDlls = @("MioKit.Sdk.dll", "MioKit.SourceGenerate.dll", "MioKit.Webview2.dll", "MioKit.Runtime.dll", "MioKit.Framework.dll")
@@ -37,6 +38,20 @@ foreach ($field in $forbiddenFields) {
     }
 }
 
+if (-not (Get-Command pnpm -ErrorAction SilentlyContinue)) {
+    throw "pnpm is required to build the Vue settings page."
+}
+Push-Location -LiteralPath $vuePath
+try {
+    & pnpm install --frozen-lockfile
+    if ($LASTEXITCODE -ne 0) { throw "Vue dependency installation failed." }
+    & pnpm build
+    if ($LASTEXITCODE -ne 0) { throw "Vue settings build failed." }
+}
+finally {
+    Pop-Location
+}
+
 New-Item -ItemType Directory -Path $OutputPath -Force | Out-Null
 & dotnet build $projectPath -c $Configuration -p:PackageId=$PackageId -p:PackageVersion=$PackageVersion --nologo
 if ($LASTEXITCODE -ne 0) { throw "dotnet build failed." }
@@ -51,6 +66,7 @@ try {
     $packagedManifestPath = Join-Path $inspectPath "plugin.json"
     if (-not (Test-Path -LiteralPath $packagedManifestPath)) { throw "The nupkg root does not contain plugin.json." }
     if (-not (Test-Path -LiteralPath (Join-Path $inspectPath $manifest.assembly))) { throw "The nupkg root does not contain the entry assembly: $($manifest.assembly)" }
+    if (-not (Test-Path -LiteralPath (Join-Path $inspectPath 'ui\dist\index.html'))) { throw "The nupkg does not contain the Vue settings page at ui/dist/index.html." }
     if ($manifest.icon -and -not (Test-Path -LiteralPath (Join-Path $inspectPath $manifest.icon))) { throw "The nupkg does not contain the resource declared by plugin.json: $($manifest.icon)" }
     foreach ($dll in $forbiddenDlls) {
         if (Get-ChildItem -LiteralPath $inspectPath -Recurse -File -Filter $dll) { throw "The nupkg must not contain host DLL: $dll" }

@@ -9,7 +9,7 @@ public static partial class MouseEnhanceExtension
         EavPropertyBuilder<bool?>.Create()
             .WithId(MouseEnhanceConst.WindowDragEnabledPropertyGuid)
             .WithName("WindowDragEnabled")
-            .WithPolicy(EavCachePolicy.None)
+            .WithPolicy(EavCachePolicy.Absolute)
             .WithStoreType(MioStoreType.Boolean)
             .WithPropertyConvert(BoolPropertyConvert.Instance)
             .WithDefaultValue(true)
@@ -20,7 +20,7 @@ public static partial class MouseEnhanceExtension
         EavPropertyBuilder<MouseEnhanceModifier?>.Create()
             .WithId(MouseEnhanceConst.ActivationModifierPropertyGuid)
             .WithName("ActivationModifier")
-            .WithPolicy(EavCachePolicy.None)
+            .WithPolicy(EavCachePolicy.Absolute)
             .WithStoreType(MioStoreType.Integer)
             .WithPropertyConvert(EnumIntegerConvert<MouseEnhanceModifier>.Instance)
             .WithDefaultValue(MouseEnhanceModifier.Alt)
@@ -31,7 +31,7 @@ public static partial class MouseEnhanceExtension
         EavPropertyBuilder<bool?>.Create()
             .WithId(MouseEnhanceConst.PreventAltWindowMenuPropertyGuid)
             .WithName("PreventAltWindowMenu")
-            .WithPolicy(EavCachePolicy.None)
+            .WithPolicy(EavCachePolicy.Absolute)
             .WithStoreType(MioStoreType.Boolean)
             .WithPropertyConvert(BoolPropertyConvert.Instance)
             .WithDefaultValue(true)
@@ -42,7 +42,7 @@ public static partial class MouseEnhanceExtension
         EavPropertyBuilder<bool?>.Create()
             .WithId(MouseEnhanceConst.RightClickResizeEnabledPropertyGuid)
             .WithName("RightClickResizeEnabled")
-            .WithPolicy(EavCachePolicy.None)
+            .WithPolicy(EavCachePolicy.Absolute)
             .WithStoreType(MioStoreType.Boolean)
             .WithPropertyConvert(BoolPropertyConvert.Instance)
             .WithDefaultValue(true)
@@ -53,7 +53,7 @@ public static partial class MouseEnhanceExtension
         EavPropertyBuilder<string?>.Create()
             .WithId(MouseEnhanceConst.ExcludedAppsPropertyGuid)
             .WithName("ExcludedApps")
-            .WithPolicy(EavCachePolicy.None)
+            .WithPolicy(EavCachePolicy.Absolute)
             .WithStoreType(MioStoreType.String)
             .WithDefaultValue(string.Empty)
             .Build();
@@ -63,7 +63,7 @@ public static partial class MouseEnhanceExtension
         EavPropertyBuilder<string?>.Create()
             .WithId(MouseEnhanceConst.ModifierExcludedAppsPropertyGuid)
             .WithName("ModifierExcludedApps")
-            .WithPolicy(EavCachePolicy.None)
+            .WithPolicy(EavCachePolicy.Absolute)
             .WithStoreType(MioStoreType.String)
             .WithDefaultValue(string.Empty)
             .Build();
@@ -73,7 +73,7 @@ public static partial class MouseEnhanceExtension
         EavPropertyBuilder<bool?>.Create()
             .WithId(MouseEnhanceConst.VolumeScrollEnabledPropertyGuid)
             .WithName("VolumeScrollEnabled")
-            .WithPolicy(EavCachePolicy.None)
+            .WithPolicy(EavCachePolicy.Absolute)
             .WithStoreType(MioStoreType.Boolean)
             .WithPropertyConvert(BoolPropertyConvert.Instance)
             .WithDefaultValue(true)
@@ -84,7 +84,7 @@ public static partial class MouseEnhanceExtension
         EavPropertyBuilder<bool?>.Create()
             .WithId(MouseEnhanceConst.DesktopIconsToggleEnabledPropertyGuid)
             .WithName("DesktopIconsToggleEnabled")
-            .WithPolicy(EavCachePolicy.None)
+            .WithPolicy(EavCachePolicy.Absolute)
             .WithStoreType(MioStoreType.Boolean)
             .WithPropertyConvert(BoolPropertyConvert.Instance)
             .WithDefaultValue(false)
@@ -95,9 +95,31 @@ public static partial class MouseEnhanceExtension
         EavPropertyBuilder<bool?>.Create()
             .WithId(MouseEnhanceConst.TaskbarShowDesktopEnabledPropertyGuid)
             .WithName("TaskbarShowDesktopEnabled")
-            .WithPolicy(EavCachePolicy.None)
+            .WithPolicy(EavCachePolicy.Absolute)
             .WithStoreType(MioStoreType.Boolean)
             .WithPropertyConvert(BoolPropertyConvert.Instance)
             .WithDefaultValue(false)
+            .Build();
+
+    [EavRelation(typeof(IMouseEnhancePluginFeature))]
+    public static EavProperty<FindMouseSettings?> FindMouseSettingsProperty { get; } =
+        EavPropertyBuilder<FindMouseSettings?>.Create()
+            .WithId(MouseEnhanceConst.FindMouseSettingsPropertyGuid)
+            .WithName("FindMouseSettings")
+            .WithPolicy(EavCachePolicy.Absolute)
+            .WithStoreType(MioStoreType.LongText)
+            .WithPropertyConvert(JsonLongTextConvert<FindMouseSettings?>.Instance)
+            .WithDefaultValue(new FindMouseSettings())
+            .Build();
+
+    [EavRelation(typeof(IMouseEnhancePluginFeature))]
+    public static EavProperty<CursorWrapSettings?> CursorWrapSettingsProperty { get; } =
+        EavPropertyBuilder<CursorWrapSettings?>.Create()
+            .WithId(MouseEnhanceConst.CursorWrapSettingsPropertyGuid)
+            .WithName("CursorWrapSettings")
+            .WithPolicy(EavCachePolicy.Absolute)
+            .WithStoreType(MioStoreType.LongText)
+            .WithPropertyConvert(JsonLongTextConvert<CursorWrapSettings?>.Instance)
+            .WithDefaultValue(new CursorWrapSettings())
             .Build();
 }

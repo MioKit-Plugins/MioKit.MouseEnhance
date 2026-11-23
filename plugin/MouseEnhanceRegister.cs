@@ -1,6 +1,5 @@
 using MouseEnhance.Nodes;
 using MouseEnhance.Services;
-using MouseEnhance.Views;
 
 namespace MouseEnhance;
 
@@ -18,6 +17,8 @@ public class MouseEnhanceRegister : RegisterBase<MouseEnhanceRegister>
         builder.RegisterType<MouseEnhanceSearchGroup>().AsSelf().InstancePerDependency();
         builder.RegisterType<StartMouseEnhanceNode>().AsSelf().InstancePerDependency();
         builder.RegisterType<StopMouseEnhanceNode>().AsSelf().InstancePerDependency();
+        builder.RegisterType<StartCursorWrapNode>().AsSelf().InstancePerDependency();
+        builder.RegisterType<StopCursorWrapNode>().AsSelf().InstancePerDependency();
 
         builder.Register(ctx => new ModifierKeyInjector(plugin.Context.Logger))
             .AsSelf()
@@ -27,11 +28,25 @@ public class MouseEnhanceRegister : RegisterBase<MouseEnhanceRegister>
             .AsSelf()
             .SingleInstance();
 
+        builder.Register(_ => new FindMouseSpotlight(error =>
+                plugin.Context.Logger.Warning(error, "Find Mouse spotlight failed")))
+            .SingleInstance();
+        builder.Register(ctx => new FindMouseController(
+                ctx.Resolve<FindMouseSpotlight>(), plugin.Context.Logger))
+            .SingleInstance();
+        builder.Register(ctx => new FindMouseSettingsJsService(plugin, ctx.Resolve<FindMouseController>()))
+            .SingleInstance();
+
+        builder.RegisterType<CursorWrapController>().SingleInstance();
+        builder.RegisterType<CursorWrapSettingsJsService>().ExternallyOwned();
+
         builder.Register(ctx => new MouseEnhanceService(
                 plugin,
                 ctx.Resolve<WindowDragCore>(),
                 ctx.Resolve<IMouseHook>(),
                 ctx.Resolve<IKeyboardHook>(),
+                ctx.Resolve<FindMouseController>(),
+                ctx.Resolve<CursorWrapController>(),
                 plugin.Context.Logger))
             .AsSelf()
             .As<IPluginLifecycleComponent>()
@@ -41,7 +56,7 @@ public class MouseEnhanceRegister : RegisterBase<MouseEnhanceRegister>
             .AsSelf()
             .SingleInstance();
 
-        builder.RegisterType<MouseEnhanceConfigViewModel>()
-            .AsSelf();
+        builder.RegisterType<ExcludeAppPicker>();
+        builder.RegisterType<MouseEnhanceSettingsJsService>();
     }
 }

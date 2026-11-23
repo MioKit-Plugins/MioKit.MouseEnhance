@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <PackageReference Include="MioKit.Extensions" Version="1.3.1" />
+    <PackageReference Include="MioKit.Webview2" Version="1.3.1" />
     <PackageReference Include="Ti.Avalonia.Shadcn" Version="1.3.1" />
     <PackageReference Include="MioKit.SourceGenerate" Version="1.3.1">
       <PrivateAssets>all</PrivateAssets>
@@ -33,9 +34,16 @@
       <Pack>true</Pack>
       <PackagePath>Assets\icon.png</PackagePath>
     </None>
+    <None Remove="ui\dist\**\*" />
+    <None Include="ui\dist\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Pack>true</Pack>
+      <PackagePath>ui/dist/%(RecursiveDir)%(Filename)%(Extension)</PackagePath>
+    </None>
   </ItemGroup>
 
   <Target Name="GenerateMioKitPluginManifest" BeforeTargets="GenerateNuspec">
+    <Error Condition="!Exists('ui/dist/index.html')" Text="找不到 Vue 设置页构建产物，请先运行 pnpm --dir plugin/vue-ui build。" />
     <Error Condition="!Exists('plugin.json')" Text="MioKit 插件包必须在项目根目录提供 plugin.json。" />
     <Exec Command="powershell -NoProfile -NonInteractive -Command &quot;&amp; { $json = Get-Content -Raw -Encoding UTF8 'plugin.json' | ConvertFrom-Json; if ($json.metadataVersion -ne '1.0' -or [string]::IsNullOrWhiteSpace($json.id) -or [string]::IsNullOrWhiteSpace($json.name) -or [string]::IsNullOrWhiteSpace($json.assembly) -or [string]::IsNullOrWhiteSpace($json.minSdkVersion)) { throw 'plugin.json 必须使用 metadataVersion 1.0，并包含非空的 id、name、assembly 和 minSdkVersion。' }; foreach ($field in @('pluginVersion','releaseState','releaseDate')) { if ($json.PSObject.Properties.Name -contains $field) { throw ('plugin.json 禁止发布字段: ' + $field) } } }&quot;" />
     <Exec Command="powershell -NoProfile -NonInteractive -Command &quot;&amp; { $plugin = Get-Content -Raw -Encoding UTF8 'plugin.json' | ConvertFrom-Json; $envelope = [ordered]@{ schema = 'miokit.plugin-package'; schemaVersion = 1; plugin = $plugin }; $directory = '$(MSBuildProjectDirectory)\$(BaseIntermediateOutputPath)'; New-Item -ItemType Directory -Force $directory | Out-Null; $envelope | ConvertTo-Json -Depth 100 -Compress | Set-Content -NoNewline -Encoding utf8 (Join-Path $directory 'miokit-package-description.json') }&quot;" />

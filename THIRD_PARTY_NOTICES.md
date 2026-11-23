@@ -11,6 +11,15 @@ This plugin ports interaction logic from the PowerToys **Grab And Move** module.
 
 This project is **not** an official Microsoft or PowerToys product.
 
+## Microsoft PowerToys — CursorWrap
+
+The cursor-wrapping behavior and monitor-edge handling draw on PowerToys **CursorWrap**.
+
+- Source: https://github.com/microsoft/PowerToys/tree/main/src/modules/MouseUtils/CursorWrap
+- Files: `CursorWrapCore.cpp`, `MonitorTopology.cpp`, `dllmain.cpp`
+- License: MIT License
+- Copyright (c) Microsoft Corporation. All rights reserved.
+
 ### MIT License
 
 ```

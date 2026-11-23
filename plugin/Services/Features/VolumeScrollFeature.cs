@@ -4,7 +4,7 @@ using MouseEnhance.Models;
 namespace MouseEnhance.Services.Features;
 
 /// <summary>Adjusts system volume with modifier + mouse wheel via media keys.</summary>
-internal sealed class VolumeScrollFeature
+internal sealed class VolumeScrollFeature(Func<int, bool> isKeyDown, Func<byte, bool> sendVolumeKey)
 {
     private const uint InputKeyboard = 1;
     private const uint KeyEventExtendedKey = 0x0001;
@@ -12,38 +12,44 @@ internal sealed class VolumeScrollFeature
     private const byte VkVolumeUp = 0xAF;
     private const byte VkVolumeDown = 0xAE;
 
-    public bool TryHandleWheel(MouseEnhanceModifier modifier, int delta)
+    public VolumeScrollFeature() : this(IsKeyDown, SendVolumeKey)
     {
-        if (!IsModifierHeld(modifier) || delta == 0)
+    }
+
+    public bool TryHandleWheel(MouseEnhanceModifier modifier, byte absorbedModifier, int delta)
+    {
+        if (delta == 0 || !IsModifierHeld(modifier, absorbedModifier))
             return false;
 
         var vk = delta > 0 ? VkVolumeUp : VkVolumeDown;
-        var steps = Math.Clamp(Math.Abs(delta) / 120, 1, 4);
+        var steps = Math.Clamp(Math.Abs((long)delta) / 120, 1, 4);
+        var sentAny = false;
         for (var i = 0; i < steps; i++)
-            SendVolumeKey(vk);
-
-        return true;
-    }
-
-    private static bool IsModifierHeld(MouseEnhanceModifier modifier)
-    {
-        return modifier switch
         {
-            MouseEnhanceModifier.Win =>
-                (GetAsyncKeyState(0x5B) & 0x8000) != 0 || (GetAsyncKeyState(0x5C) & 0x8000) != 0,
-            _ =>
-                (GetAsyncKeyState(0x12) & 0x8000) != 0 // VK_MENU
-        };
+            if (!sendVolumeKey(vk))
+                break;
+            sentAny = true;
+        }
+
+        return sentAny;
     }
 
-    private static void SendVolumeKey(byte vk)
+    private bool IsModifierHeld(MouseEnhanceModifier modifier, byte absorbedModifier) => modifier switch
+    {
+        MouseEnhanceModifier.Win => absorbedModifier is 0x5B or 0x5C || isKeyDown(0x5B) || isKeyDown(0x5C),
+        _ => absorbedModifier is 0x12 or 0xA4 or 0xA5 || isKeyDown(0x12)
+    };
+
+    private static bool IsKeyDown(int key) => (GetAsyncKeyState(key) & 0x8000) != 0;
+
+    private static bool SendVolumeKey(byte vk)
     {
         NativeInput[] inputs =
         [
             CreateKey(vk, keyUp: false),
             CreateKey(vk, keyUp: true)
         ];
-        _ = SendInput((uint)inputs.Length, inputs, Marshal.SizeOf<NativeInput>());
+        return SendInput((uint)inputs.Length, inputs, Marshal.SizeOf<NativeInput>()) == inputs.Length;
     }
 
     private static NativeInput CreateKey(byte vk, bool keyUp) => new()

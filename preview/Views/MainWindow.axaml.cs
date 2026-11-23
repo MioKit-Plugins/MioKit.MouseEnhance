@@ -1,22 +1,43 @@
 using Avalonia.Controls;
-using MouseEnhance.Views;
+using Avalonia.Interactivity;
+using MouseEnhance.Models;
+using MouseEnhance.Services;
 
 namespace MouseEnhance.Preview.Views;
 
 public partial class MainWindow : Window
 {
+    private readonly FindMouseSpotlight _spotlight;
+
     public MainWindow()
     {
         InitializeComponent();
-        LoadPluginPreview();
+        _spotlight = new FindMouseSpotlight(ShowSpotlightError);
     }
 
-    private void LoadPluginPreview()
+    private void PreviewFindMouse(object? sender, RoutedEventArgs args)
     {
-        // Layout preview without host DI: bind empty VM shell (toggles won't persist).
-        PluginPreviewHost.Content = new MouseEnhanceConfigPage
+        SpotlightError.IsVisible = false;
+        try
         {
-            DataContext = MouseEnhanceConfigViewModel.CreateDesignPreview()
-        };
+            _spotlight.Show(new FindMouseSettings());
+        }
+        catch (Exception exception)
+        {
+            ShowSpotlightError(exception);
+        }
     }
+
+    private void ShowSpotlightError(Exception exception)
+    {
+        SpotlightError.Text = $"寻找鼠标预览失败。{exception.Message}";
+        SpotlightError.IsVisible = true;
+    }
+
+    protected override void OnClosed(EventArgs args)
+    {
+        _spotlight.Hide();
+        base.OnClosed(args);
+    }
+
 }

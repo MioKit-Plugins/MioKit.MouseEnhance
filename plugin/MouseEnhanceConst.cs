@@ -16,9 +16,17 @@ public static class MouseEnhanceConst
     public const string StopNodeTypeId = "5978C5F2-6D86-49AD-9657-9624691E54FD";
     public static readonly Guid StopNodeType = Guid.Parse(StopNodeTypeId);
 
+    public const string StartCursorWrapNodeTypeId = "317016B2-E155-4B7C-AE29-3B09B00B9886";
+    public static readonly Guid StartCursorWrapNodeType = Guid.Parse(StartCursorWrapNodeTypeId);
+
+    public const string StopCursorWrapNodeTypeId = "65D9A3A2-2EB9-40B5-B79C-4A904D65D73F";
+    public static readonly Guid StopCursorWrapNodeType = Guid.Parse(StopCursorWrapNodeTypeId);
+
     public const string SearchGroupId = PluginId + ".search-group";
     public const string StartNodeId = PluginId + ".start";
     public const string StopNodeId = PluginId + ".stop";
+    public const string StartCursorWrapNodeId = PluginId + ".cursor-wrap.start";
+    public const string StopCursorWrapNodeId = PluginId + ".cursor-wrap.stop";
 
     public const string WindowDragEnabledPropertyId = "01229891-004D-4594-96A4-F9E9D02F6D2A";
     public static readonly Guid WindowDragEnabledPropertyGuid = Guid.Parse(WindowDragEnabledPropertyId);
@@ -48,6 +56,12 @@ public static class MouseEnhanceConst
     public const string TaskbarShowDesktopEnabledPropertyId = "F7B0BDA1-697A-4573-BB5C-B81D82A1F5EA";
     public static readonly Guid TaskbarShowDesktopEnabledPropertyGuid =
         Guid.Parse(TaskbarShowDesktopEnabledPropertyId);
+
+    public const string FindMouseSettingsPropertyId = "9AA475E2-6E20-41A7-AB2E-84CC604BD8E4";
+    public static readonly Guid FindMouseSettingsPropertyGuid = Guid.Parse(FindMouseSettingsPropertyId);
+
+    public const string CursorWrapSettingsPropertyId = "E4C5EC9D-2E2A-4A1D-AC14-62E7BA95CA41";
+    public static readonly Guid CursorWrapSettingsPropertyGuid = Guid.Parse(CursorWrapSettingsPropertyId);
 
     public const string InputHandlerId = PluginId + ".hooks";
 

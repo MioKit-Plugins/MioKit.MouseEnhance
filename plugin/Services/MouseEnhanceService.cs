@@ -20,9 +20,12 @@ internal sealed class MouseEnhanceService :
     private readonly WindowDragCore _windowDrag;
     private readonly IMouseHook _mouseHook;
     private readonly IKeyboardHook _keyboardHook;
+    private readonly FindMouseController _findMouse;
+    private readonly CursorWrapController _cursorWrap;
     private readonly ILogger _logger;
     private readonly VolumeScrollFeature _volumeScroll = new();
     private readonly DoubleClickTracker _doubleClick = new();
+    private readonly object _settingsSync = new();
     private readonly object _sync = new();
 
     private bool _windowDragEnabled;
@@ -31,23 +34,29 @@ internal sealed class MouseEnhanceService :
     private bool _taskbarShowDesktopEnabled;
     private MouseEnhanceModifier _activationModifier = MouseEnhanceModifier.Alt;
     private bool _handlersRegistered;
+    private Timer? _cursorWrapTopologyTimer;
 
     public MouseEnhanceService(
         MouseEnhancePlugin plugin,
         WindowDragCore windowDrag,
         IMouseHook mouseHook,
         IKeyboardHook keyboardHook,
+        FindMouseController findMouse,
+        CursorWrapController cursorWrap,
         ILogger logger)
     {
         ArgumentNullException.ThrowIfNull(plugin);
         ArgumentNullException.ThrowIfNull(windowDrag);
         ArgumentNullException.ThrowIfNull(mouseHook);
         ArgumentNullException.ThrowIfNull(keyboardHook);
+        ArgumentNullException.ThrowIfNull(findMouse);
         ArgumentNullException.ThrowIfNull(logger);
         _plugin = plugin;
         _windowDrag = windowDrag;
         _mouseHook = mouseHook;
         _keyboardHook = keyboardHook;
+        _findMouse = findMouse;
+        _cursorWrap = cursorWrap;
         _logger = logger;
     }
 
@@ -60,7 +69,7 @@ internal sealed class MouseEnhanceService :
     public bool SupportUp => true;
     public bool SupportDown => true;
     public bool SupportMove => true;
-    public bool SupportWhere => false;
+    public bool SupportWhere => true;
     public bool SupportDoubleClick => false;
 
     public bool IsWindowDragEnabled
@@ -74,31 +83,52 @@ internal sealed class MouseEnhanceService :
 
     public void EnableWindowDrag(bool persist = true)
     {
-        lock (_sync)
-            _windowDragEnabled = true;
+        lock (_settingsSync)
+        {
+            lock (_sync)
+                _windowDragEnabled = true;
 
-        if (persist)
-            _plugin.SetWindowDragEnabled(true);
+            if (persist)
+                _plugin.SetWindowDragEnabled(true);
 
-        ReloadSettingsFromPlugin();
+            ReloadSettingsCore();
+        }
+
         _logger.Information("Window drag enabled");
     }
 
     public void DisableWindowDrag(bool persist = true)
     {
-        lock (_sync)
-            _windowDragEnabled = false;
+        lock (_settingsSync)
+        {
+            lock (_sync)
+                _windowDragEnabled = false;
 
-        _windowDrag.Reset();
+            _windowDrag.Reset();
 
-        if (persist)
-            _plugin.SetWindowDragEnabled(false);
+            if (persist)
+                _plugin.SetWindowDragEnabled(false);
 
-        ReloadSettingsFromPlugin();
+            ReloadSettingsCore();
+        }
+
         _logger.Information("Window drag disabled");
     }
 
+    // Settings writes and reloads may come from the UI or hotkey threads.
+    public T WithSettingsLock<T>(Func<T> action)
+    {
+        lock (_settingsSync)
+            return action();
+    }
+
     public void ReloadSettingsFromPlugin()
+    {
+        lock (_settingsSync)
+            ReloadSettingsCore();
+    }
+
+    private void ReloadSettingsCore()
     {
         var windowDragOn = _plugin.GetWindowDragEnabled() != false;
         var volumeOn = _plugin.GetVolumeScrollEnabled() != false;
@@ -136,10 +166,34 @@ internal sealed class MouseEnhanceService :
         await _mouseHook.StartAsync(cancellationToken).ConfigureAwait(false);
 
         ReloadSettingsFromPlugin();
+        _findMouse.Start(_plugin.ReadFindMouseSettings());
 
-        _keyboardHook.RegisterHandler(this);
-        _mouseHook.RegisterHandler(this);
-        _handlersRegistered = true;
+        try
+        {
+            _cursorWrap.Start(_plugin.ReadCursorWrapSettings());
+
+            _keyboardHook.RegisterHandler(this);
+            _mouseHook.RegisterHandler(this);
+            _handlersRegistered = true;
+            if (_mouseHook is IInputHookDispatcher)
+            {
+                _cursorWrapTopologyTimer = new Timer(_ => RefreshCursorWrapMonitors(), null,
+                    TimeSpan.Zero, TimeSpan.FromSeconds(1));
+            }
+            else
+            {
+                _logger.Warning("CursorWrap requires the host mouse hook dispatcher");
+            }
+        }
+        catch
+        {
+            _mouseHook.UnregisterHandler(this);
+            _keyboardHook.UnregisterHandler(this);
+            _handlersRegistered = false;
+            _cursorWrap.Stop();
+            await _findMouse.StopAsync().ConfigureAwait(false);
+            throw;
+        }
 
         _logger.Information(
             "MouseEnhance handlers registered (drag={Drag}, volume={Volume}, desktop={Desktop}, taskbar={Taskbar})",
@@ -149,8 +203,13 @@ internal sealed class MouseEnhanceService :
             _plugin.GetTaskbarShowDesktopEnabled() == true);
     }
 
-    public Task StopAsync(CancellationToken cancellationToken = default)
+    public async Task StopAsync(CancellationToken cancellationToken = default)
     {
+        _cursorWrap.Stop();
+        if (Interlocked.Exchange(ref _cursorWrapTopologyTimer, null) is { } timer)
+            await timer.DisposeAsync().ConfigureAwait(false);
+
+        var stopSpotlight = _findMouse.StopAsync();
         if (_handlersRegistered)
         {
             _mouseHook.UnregisterHandler(this);
@@ -160,12 +219,13 @@ internal sealed class MouseEnhanceService :
 
         _windowDrag.Reset();
         _doubleClick.Reset();
+        await stopSpotlight.ConfigureAwait(false);
         _logger.Information("MouseEnhance handlers unregistered");
-        return Task.CompletedTask;
     }
 
     public InputEventHandleResult HandleKeyDown(KeyboardEventArgs args)
     {
+        _findMouse.ObserveKey(args, down: true);
         if (args.IsSimulator || !IsWindowDragEnabled)
             return InputEventHandleResult.None;
 
@@ -176,6 +236,7 @@ internal sealed class MouseEnhanceService :
 
     public InputEventHandleResult HandleKeyUp(KeyboardEventArgs args)
     {
+        _findMouse.ObserveKey(args, down: false);
         if (args.IsSimulator || !IsWindowDragEnabled)
             return InputEventHandleResult.None;
 
@@ -185,6 +246,7 @@ internal sealed class MouseEnhanceService :
 
     public InputEventHandleResult HandleDown(MouseEventArgs args)
     {
+        _findMouse.ObserveButton(args, down: true);
         var button = ToButton(args.CurrentKey);
         var point = new ScreenPoint((int)args.Position.X, (int)args.Position.Y);
 
@@ -199,6 +261,7 @@ internal sealed class MouseEnhanceService :
 
     public InputEventHandleResult HandleUp(MouseEventArgs args)
     {
+        _findMouse.ObserveButton(args, down: false);
         var button = ToButton(args.CurrentKey);
         if (button == MouseButtonKind.None || !IsWindowDragEnabled)
             return InputEventHandleResult.None;
@@ -209,11 +272,60 @@ internal sealed class MouseEnhanceService :
 
     public InputEventHandleResult HandleMove(MouseEventArgs args)
     {
-        if (!IsWindowDragEnabled)
+        if (args.ExtraInfo == CursorWrapNative.MoveTag)
             return InputEventHandleResult.None;
 
+        _findMouse.ObserveMove(args);
+        var dragEnabled = IsWindowDragEnabled;
         var point = new ScreenPoint((int)args.Position.X, (int)args.Position.Y);
-        return ToResult(_windowDrag.HandleMouseMove(point, args.ExtraInfo));
+        var windowDragActive = dragEnabled && _windowDrag.IsInteracting;
+        var result = dragEnabled
+            ? ToResult(_windowDrag.HandleMouseMove(point, args.ExtraInfo)) : InputEventHandleResult.None;
+
+        if (_cursorWrap.IsActive && _mouseHook is IInputHookDispatcher dispatcher)
+        {
+            var input = ReadCursorWrapInput(windowDragActive || result != InputEventHandleResult.None,
+                args.IsSimulator);
+            if (_cursorWrap.ObserveMove(point, input) is { } movement)
+                _ = MoveCursorAsync(dispatcher, movement);
+        }
+
+        return result;
+    }
+
+    private static CursorWrapInput ReadCursorWrapInput(bool windowDragActive, bool isSynthetic = false) => new(
+        ControlHeld: GrabWindowNative.IsKeyDown(0x11),
+        ShiftHeld: GrabWindowNative.IsKeyDown(0x10),
+        ButtonHeld: GrabWindowNative.IsKeyDown(0x01) || GrabWindowNative.IsKeyDown(0x02) ||
+            GrabWindowNative.IsKeyDown(0x04) || GrabWindowNative.IsKeyDown(0x05) || GrabWindowNative.IsKeyDown(0x06),
+        WindowDragActive: windowDragActive,
+        IsSynthetic: isSynthetic);
+
+    private async Task MoveCursorAsync(IInputHookDispatcher dispatcher, CursorWrapMove move)
+    {
+        try
+        {
+            await dispatcher.DispatchAsync(() =>
+            {
+                if (_cursorWrap.TryExecuteMove(move, ReadCursorWrapInput(IsWindowDragEnabled && _windowDrag.IsInteracting),
+                        CursorWrapNative.TryMove))
+                    _findMouse.ResetShake();
+            }).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            // The host can stop its shared dispatcher while the move is queued.
+        }
+        catch (Exception error)
+        {
+            _logger.Warning(error, "CursorWrap could not move the cursor");
+        }
+    }
+
+    private void RefreshCursorWrapMonitors()
+    {
+        if (_cursorWrap.Settings.Enabled)
+            _cursorWrap.UpdateMonitors(CursorWrapNative.ReadMonitors());
     }
 
     public InputEventHandleResult HandleDoubleClick(MouseEventArgs args) => InputEventHandleResult.None;
@@ -231,8 +343,13 @@ internal sealed class MouseEnhanceService :
         if (!volumeEnabled || _windowDrag.IsInteracting)
             return InputEventHandleResult.None;
 
-        var delta = (int)args.Delta;
-        return _volumeScroll.TryHandleWheel(modifier, delta) ? Consumed : InputEventHandleResult.None;
+        var absorbedModifier = _windowDrag.AbsorbedModifier;
+        if (!_volumeScroll.TryHandleWheel(modifier, absorbedModifier, args.Delta))
+            return InputEventHandleResult.None;
+
+        if (absorbedModifier != 0)
+            _windowDrag.MarkAbsorbedModifierConsumed();
+        return Consumed;
     }
 
     private bool TryHandleDesktopOrTaskbarDoubleClick(ScreenPoint point)

@@ -1,3 +1,5 @@
+using MouseEnhance.Features;
+
 namespace MouseEnhance.Nodes;
 
 [EavType(MouseEnhanceConst.SearchGroupTypeId)]
@@ -13,6 +15,8 @@ public sealed class MouseEnhanceSearchGroup : MioObject, ISearchableFeature
     {
         await EnsureTreeLoadedAsync<StartMouseEnhanceNode>(MouseEnhanceConst.StartNodeId);
         await EnsureTreeLoadedAsync<StopMouseEnhanceNode>(MouseEnhanceConst.StopNodeId);
+        await EnsureTreeLoadedAsync<StartCursorWrapNode>(MouseEnhanceConst.StartCursorWrapNodeId);
+        await EnsureTreeLoadedAsync<StopCursorWrapNode>(MouseEnhanceConst.StopCursorWrapNodeId);
     }
 
     public ValueTask SearchAsync(
@@ -27,7 +31,7 @@ public sealed class MouseEnhanceSearchGroup : MioObject, ISearchableFeature
         foreach (var node in this.GetDescendants<MioObject>())
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (node is not (StartMouseEnhanceNode or StopMouseEnhanceNode))
+            if (node is not (IMouseEnhanceFeature and IInvokeFeature))
                 continue;
             if (!node.TryMatch(request.SearchText!, out var match, out var title))
                 continue;

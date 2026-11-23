@@ -8,16 +8,22 @@ Windows 鼠标手势增强插件，运行于 [MioKit](https://github.com/MioKit)
 | **修饰键 + 拖动窗口** | 任意位置左键移动、右键缩放（不必瞄准标题栏） |
 | **双击桌面** | 隐藏 / 显示桌面图标 |
 | **双击任务栏** | 显示 / 隐藏桌面 |
+| **寻找鼠标** | 双击 Ctrl 或摇晃鼠标，在所有显示器上显示跟随指针的聚光灯 |
+| **光标环绕** | 从显示器外缘进入对侧，可通过启动和停止节点控制 |
 
-窗口拖动手势算法参考 PowerToys Grab And Move（MIT），见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。本仓库**不是** Microsoft / PowerToys 官方组件。
+窗口拖动和光标环绕分别参考 PowerToys Grab And Move 与 CursorWrap（MIT），见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。本仓库**不是** Microsoft / PowerToys 官方组件。
 
 ## 快速开始
 
 1. 在 MioKit 中安装并启用本插件。
 2. 搜索「鼠标增强」并回车，打开配置窗口。
-3. 按需打开上方四个功能开关。
+3. 在左侧选择对应功能，按需开启和配置。
 
 默认开启「滚轮调音量」与「拖动窗口」；桌面图标与任务栏手势默认关闭。
+
+在「寻找鼠标」页可启用全局手势、调整聚光灯外观或预览效果。寻找鼠标默认关闭，「预览效果」可直接使用。配置窗口加载本地 Vue 资源，需要 Microsoft Edge WebView2 Runtime 和支持 SDK 1.3.1 的 MioKit 宿主。
+
+「光标环绕」默认关闭。设置页可调整环绕方向、触发条件、拖动及单屏行为。若要使用快捷键，可在「启动光标环绕」和「停止光标环绕」各自的搜索结果菜单中选择「全局快捷键设置」。
 
 ## 搜索命令
 
@@ -26,6 +32,8 @@ Windows 鼠标手势增强插件，运行于 [MioKit](https://github.com/MioKit)
 | **鼠标增强** | 打开配置窗口（主入口） |
 | **启用窗口拖动** | 仅启用窗口拖动手势 |
 | **停用窗口拖动** | 仅停用窗口拖动手势 |
+| **启动光标环绕** | 启用并激活光标环绕 |
+| **停止光标环绕** | 暂停本次运行的光标环绕 |
 
 可为上述结果设置别名或热键。
 
@@ -49,8 +57,19 @@ Windows 鼠标手势增强插件，运行于 [MioKit](https://github.com/MioKit)
 
 ## 开发与打包
 
-```text
+```powershell
+pnpm --dir plugin/vue-ui install --frozen-lockfile
+pnpm --dir plugin/vue-ui build
 dotnet build plugin/MioKit.MouseEnhance.csproj -c Release
+```
+
+设置页可通过 `pnpm --dir plugin/vue-ui dev` 在浏览器预览，桌面聚光灯可通过 `preview` 项目预览。
+
+光标环绕和滚轮音量的无头回归使用合成显示器布局和输入：
+
+```powershell
+dotnet run --project tests/CursorWrap.Regression -c Release
+dotnet run --project tests/VolumeScroll.Regression -c Release
 ```
 
 Windows 跨进程命中测试回归（需要 .NET 10 SDK，无额外 NuGet 依赖）：

@@ -1,5 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
+using MouseEnhance.Models;
+using MouseEnhance.Services;
 
 namespace MouseEnhance.Views;
 
@@ -7,13 +9,15 @@ public partial class ExcludeAppPickerOverlay : Window
 {
     public ExcludeAppPickerOverlay()
     {
+        Win32Properties.AddWindowStylesCallback(this, FindMouseSpotlightNative.AddOverlayStyles);
+        Win32Properties.AddWndProcHookCallback(this, FindMouseSpotlightNative.HandleOverlayHitTest);
         InitializeComponent();
     }
 
     public void MoveTo(int x, int y, int width, int height, string? title, string? processName)
     {
         Position = new PixelPoint(x, y);
-        var scale = Math.Max(RenderScaling, 1);
+        var scale = RenderScaling;
         Width = Math.Max(width / scale, 1);
         Height = Math.Max(height / scale, 1);
 
@@ -25,5 +29,9 @@ public partial class ExcludeAppPickerOverlay : Window
 
         if (!IsVisible)
             Show();
+
+        var handle = TryGetPlatformHandle()?.Handle ?? 0;
+        if (handle != 0)
+            GrabWindowNative.MoveResizeWindow(handle, new WindowRect(x, y, x + width, y + height));
     }
 }
