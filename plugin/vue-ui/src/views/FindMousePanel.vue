@@ -9,7 +9,7 @@ const fields = [
   { field: 'spotlightDiameter', label: '聚光灯直径', min: 48, max: 640, unit: ' px' },
   { field: 'maskOpacity', label: '遮罩强度', min: 0, max: 100, unit: '%' },
   { field: 'glowOpacity', label: '光晕强度', min: 0, max: 100, unit: '%' },
-  { field: 'animationDurationMs', label: '淡入与淡出', min: 0, max: 2000, unit: ' ms' },
+  { field: 'animationDurationMs', label: '动画时长', min: 0, max: 2000, unit: ' ms' },
   { field: 'holdDurationMs', label: '停留时长', min: 100, max: 5000, unit: ' ms' },
 ];
 

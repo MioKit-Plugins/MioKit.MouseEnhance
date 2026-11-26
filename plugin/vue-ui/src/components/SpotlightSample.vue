@@ -11,6 +11,7 @@ const scene = ref(null);
 const resting = { x: 0.52, y: 0.51 };
 const pointer = shallowRef(resting);
 const opacity = ref(1);
+const radiusScale = ref(1);
 const dimensions = shallowRef({ width: 0, height: 0, screens: [] });
 const cursor = computed(() => ({
   x: pointer.value.x * dimensions.value.width,
@@ -22,7 +23,7 @@ const sceneStyle = computed(() => ({
   '--shade': props.settings.maskOpacity * opacity.value / 100,
   '--glow': props.settings.glowOpacity * opacity.value / 100,
   '--glow-color': props.settings.spotlightColor,
-  '--radius': Math.max(3, props.settings.spotlightDiameter * dimensions.value.width / 3000) + 'px',
+  '--radius': Math.max(3, props.settings.spotlightDiameter * dimensions.value.width / 3000) * radiusScale.value + 'px',
 }));
 const shadeStyles = computed(() => dimensions.value.screens.map(screen => ({
   '--center-x': cursor.value.x - screen.left + 'px',
@@ -48,6 +49,7 @@ function reset() {
   }
   pointer.value = resting;
   opacity.value = 1;
+  radiusScale.value = 1;
 }
 
 function play() {
@@ -56,7 +58,7 @@ function play() {
   const hold = props.settings.holdDurationMs;
   const total = duration * 2 + hold;
   const start = performance.now();
-  const animatePointer = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const animateMotion = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   function render(timestamp) {
     const elapsed = Math.max(0, timestamp - start);
@@ -64,18 +66,21 @@ function play() {
       reset();
       return;
     }
-    opacity.value = duration === 0
+    const progress = duration === 0
       ? 1
       : Math.min(1, elapsed / duration, (total - elapsed) / duration);
-    if (animatePointer) {
-      const progress = Math.min(1, Math.max(0, (elapsed - duration) / hold));
-      pointer.value = { x: 0.30 + progress * 0.40, y: 0.60 - progress * 0.15 };
+    const focus = progress * progress * (3 - 2 * progress);
+    opacity.value = focus;
+    if (animateMotion) {
+      radiusScale.value = 1 + 2 * (1 - focus);
+      const pointerProgress = Math.min(1, Math.max(0, (elapsed - duration) / hold));
+      pointer.value = { x: 0.30 + pointerProgress * 0.40, y: 0.60 - pointerProgress * 0.15 };
     }
     frame = requestAnimationFrame(render);
   }
 
   emit('playing', true);
-  frame = requestAnimationFrame(render);
+  render(start);
 }
 
 function hover(event) {

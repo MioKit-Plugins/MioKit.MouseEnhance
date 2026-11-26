@@ -28,10 +28,13 @@ public sealed class FindMouseSpotlight(Action<Exception>? reportError = null)
             if (_timer is not null && _appearance == appearance)
             {
                 var now = Stopwatch.GetTimestamp();
-                if (Stopwatch.GetElapsedTime(_startedAt, now).TotalMilliseconds >= appearance.AnimationDurationMs)
+                var elapsedMs = Stopwatch.GetElapsedTime(_startedAt, now).TotalMilliseconds;
+                if (elapsedMs >= appearance.AnimationDurationMs)
                 {
-                    _startedAt = now - (long)(appearance.AnimationDurationMs * (Stopwatch.Frequency / 1000d));
-                    AdvanceFrame();
+                    // Resume the entrance at the current radius and opacity if the spotlight is fading out.
+                    var entranceMs = Math.Clamp(appearance.TotalDurationMs - elapsedMs, 0, appearance.AnimationDurationMs);
+                    _startedAt = now - (long)(entranceMs * Stopwatch.Frequency / 1000d);
+                    AdvanceFrame(now);
                 }
 
                 return;
@@ -61,7 +64,7 @@ public sealed class FindMouseSpotlight(Action<Exception>? reportError = null)
             };
             _timer.Tick += OnTick;
             _timer.Start();
-            AdvanceFrame();
+            AdvanceFrame(_startedAt);
         }
         catch
         {
@@ -121,7 +124,7 @@ public sealed class FindMouseSpotlight(Action<Exception>? reportError = null)
     {
         try
         {
-            AdvanceFrame();
+            AdvanceFrame(Stopwatch.GetTimestamp());
         }
         catch (Exception exception)
         {
@@ -130,26 +133,30 @@ public sealed class FindMouseSpotlight(Action<Exception>? reportError = null)
         }
     }
 
-    private void AdvanceFrame()
+    private void AdvanceFrame(long now)
     {
-        var elapsedMs = Stopwatch.GetElapsedTime(_startedAt).TotalMilliseconds;
-        var fadeMs = _appearance.AnimationDurationMs;
-        var durationMs = fadeMs * 2 + _appearance.HoldDurationMs;
-        if (elapsedMs >= durationMs || !FindMouseSpotlightNative.TryGetPhysicalCursorPosition(out var cursor))
+        var elapsedMs = Stopwatch.GetElapsedTime(_startedAt, now).TotalMilliseconds;
+        var remainingMs = _appearance.TotalDurationMs - elapsedMs;
+        if (remainingMs <= 0 || !FindMouseSpotlightNative.TryGetPhysicalCursorPosition(out var cursor))
         {
             Hide();
             return;
         }
 
-        var remainingMs = durationMs - elapsedMs;
-        var opacity = fadeMs == 0 ? 1 : Math.Min(1, Math.Min(elapsedMs, remainingMs) / fadeMs);
+        var animationMs = _appearance.AnimationDurationMs;
+        var progress = animationMs == 0 ? 1 : Math.Min(1, Math.Min(elapsedMs, remainingMs) / animationMs);
+        var focus = progress * progress * (3 - 2 * progress);
+        var radiusScale = 1 + 2 * (1 - focus);
 
         var cursorScale = _screens!.ScreenFromPoint(cursor)?.Scaling ?? _screens.Primary?.Scaling ?? 1;
-        var physicalRadius = _appearance.Diameter / 2d * cursorScale;
+        var physicalRadius = _appearance.Diameter / 2d * cursorScale * radiusScale;
         foreach (var window in _windows)
-            window.SetFrame(cursor, physicalRadius, opacity);
+            window.SetFrame(cursor, physicalRadius, focus);
     }
 
     private readonly record struct Appearance(
-        Color Color, int Diameter, int MaskOpacity, int GlowOpacity, int AnimationDurationMs, int HoldDurationMs);
+        Color Color, int Diameter, int MaskOpacity, int GlowOpacity, int AnimationDurationMs, int HoldDurationMs)
+    {
+        public int TotalDurationMs => 2 * AnimationDurationMs + HoldDurationMs;
+    }
 }
